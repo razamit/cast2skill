@@ -6,6 +6,30 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-11: M4, `fetch` for podcasts (Apple, Spotify to RSS, RSS, direct audio). ✅ DONE. [unreleased]**
+New modules: `podcast_feeds` (RSS parsing, entity refusal), `episode_match`
+(normalized exact, difflib >= 0.8, else top 3 as `needs_episode`),
+`podcast_lookup` (iTunes lookup/search, Spotify oEmbed, endpoints verified
+live today), `sources_podcast` (four routes, download, transcribe, delete).
+
+Proof: `python3 -m unittest discover -s tests -t .` → `Ran 70 tests OK`.
+Live (no transcription): Spotify episode `7ywcdUyAXA3dNFKU4xjFeY` → oEmbed
+title → iTunes episode search → `lexfridman.com/feed/podcast/` → matched #504
+(manual case 4's resolution); Apple link with `?i=1000798266396` → feed +
+guid match #503; show link without episode → `needs_episode` with recent
+list. Live with transcription (NPR News Now): Apple show link + `--episode`
+→ 280 s episode transcribed, 790 words, 5.3 s total; same episode via the RSS
+URL → `reused: true`; direct `.mp3` URL → transcribed (title "default" from
+the file name); `https://example.com/` → `bad_arguments` with a paste-text hint.
+Not run live: a real Spotify-only episode (manual case 5; unit-tested with
+both failure shapes) and a Hebrew podcast. Note: NPR enclosures pass through
+a `byspotify.com` analytics redirect; that is the publisher's RSS audio, not
+Spotify's service. Files: `skills/learn/scripts/cast2skill_core/{podcast_feeds,episode_match,podcast_lookup,sources_podcast}.py`,
+`tests/test_podcasts.py`, `tests/fixtures/podcast_feed.xml`,
+`tests/fixtures/entity_feed.xml`, devlog. Refs: decisions 20 to 23.
+
+---
+
 **2026-11-11: M3, `fetch` for text, local audio and YouTube. ✅ DONE. [unreleased]**
 New modules: `classify` (all §6.3 rows, incl. M4's), `language`, `subtitles`
 (rolling-caption dedupe, ~30 s paragraphs), `http_client` (CA fallback),

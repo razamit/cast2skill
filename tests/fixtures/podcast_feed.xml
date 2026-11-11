@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Shipping With Agents</title>
+    <itunes:author>Example Studio</itunes:author>
+    <language>en-us</language>
+    <item>
+      <title>Ep. 41: Reviews that catch real bugs</title>
+      <guid isPermaLink="false">guid-41</guid>
+      <pubDate>Tue, 03 Nov 2026 08:00:00 GMT</pubDate>
+      <itunes:duration>1:02:03</itunes:duration>
+      <enclosure url="https://cdn.example.com/ep41.mp3" type="audio/mpeg" length="1"/>
+      <link>https://example.com/ep41</link>
+    </item>
+    <item>
+      <title>Ep. 42: Tests first, always?</title>
+      <guid>guid-42</guid>
+      <pubDate>Tue, 10 Nov 2026 08:00:00 GMT</pubDate>
+      <itunes:duration>3723</itunes:duration>
+      <enclosure url="https://cdn.example.com/ep42.m4a" type="audio/x-m4a" length="1"/>
+    </item>
+    <item>
+      <title>Ep. 40: Planning before prompting</title>
+      <guid>guid-40</guid>
+      <pubDate>Tue, 27 Oct 2026 08:00:00 GMT</pubDate>
+      <itunes:duration>45:10</itunes:duration>
+      <enclosure url="https://cdn.example.com/ep40.mp3" type="audio/mpeg" length="1"/>
+    </item>
+    <item>
+      <title>Bonus: show notes only, no audio</title>
+      <guid>guid-bonus</guid>
+    </item>
+    <item>
+      <title>פרק 39: סוכנים, בדיקות ומה שביניהם</title>
+      <guid>guid-39</guid>
+      <pubDate>Tue, 20 Oct 2026 08:00:00 GMT</pubDate>
+      <enclosure url="https://cdn.example.com/ep39.mp3" type="audio/mpeg" length="1"/>
+    </item>
+  </channel>
+</rss>
