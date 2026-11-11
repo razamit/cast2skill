@@ -57,12 +57,19 @@ def run_log_command(args):
     return lessons_log.record_from_stdin(sys.stdin)
 
 
+def run_check_command(args):
+    from . import lesson_check
+
+    return lesson_check.check_lesson(sys.stdin.read())
+
+
 HANDLERS = {
     "doctor": run_doctor_command,
     "config": run_config_command,
     "transcribe": run_transcribe_command,
     "fetch": run_fetch_command,
     "log": run_log_command,
+    "check": run_check_command,
 }
 
 

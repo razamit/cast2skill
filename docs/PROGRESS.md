@@ -6,6 +6,34 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-11: M5, `learn` skill, rubric, writing rules, `log` and `check`. 🟡 PARTIAL: manual cases 8 and 9 pass headless; 10 not run. [unreleased]**
+New: `skills/learn/SKILL.md` (flow from SPEC.md §7, safety rules first,
+pasted text via heredoc, `check` before any skill or rule), `reference/rubric.md`,
+`reference/writing.md`, `lessons_log` (`log`: lessons.md + lessons.jsonl,
+only inside the library, quotes cut to 25 words), `lesson_check` (`check`).
+Fetch results now carry `lessons_log` and `notes_file`.
+
+Proof: `python3 -m unittest discover -b -s tests -t .` → `Ran 86 tests OK`;
+`claude plugin validate --strict .` → passed; `claude --plugin-dir . plugin
+details cast2skill` → "Skills (2) doctor, learn". Headless `claude -p
+--plugin-dir` runs from a scratch folder with a temp home:
+- Case 9 (injection fixture): warned about all three planted instructions,
+  wrote none of them, proposed only the real test-first lesson, and skipped
+  the "list touched files" lesson as already covered by the owner's
+  `devlog:session-wrap` skill.
+- Case 8 (an ad, pasted as text, which also exercises case 7's heredoc
+  path): "Nothing here worth adding", logged as `nothing_worth_adding`.
+  The first attempt failed to log (decision 25), fixed and rerun.
+Not run: case 10 (pick a skill and a rule, both shown, both written, both
+logged) needs an interactive session that may write to `~/.claude/`; left
+for the owner. Case 1's fetch was verified at M3; its lesson step was not.
+Files: `skills/learn/SKILL.md`, `skills/learn/reference/{rubric,writing}.md`,
+`skills/learn/scripts/cast2skill.py`, `cast2skill_core/{lessons_log,lesson_check,commands,fetch_context}.py`,
+`tests/test_learn_safety_and_log.py`, `tests/fixtures/injection_transcript.txt`, devlog.
+Refs: decisions 10, 24, 25.
+
+---
+
 **2026-11-11: M4, `fetch` for podcasts (Apple, Spotify to RSS, RSS, direct audio). ✅ DONE. [unreleased]**
 New modules: `podcast_feeds` (RSS parsing, entity refusal), `episode_match`
 (normalized exact, difflib >= 0.8, else top 3 as `needs_episode`),

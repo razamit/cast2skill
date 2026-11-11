@@ -57,6 +57,11 @@ class FetchContext:
         stored["reused"] = True
         stored["warnings"] = list(stored.get("warnings", [])) + ["reused_existing_transcript"]
         stored["transcript_path"] = os.path.join(folder, TRANSCRIPT_NAME)
+        stored["library_dir"] = folder
+        stored["lessons_log"] = os.path.join(storage.home_dir(), "lessons.jsonl")
+        stored["notes_file"] = os.path.join(storage.home_dir(), "notes.md")
+        for internal in ("fetched_by", "language_reason", "extra"):
+            stored.pop(internal, None)
         return stored
 
     # ------------------------------------------------------------------
@@ -120,6 +125,8 @@ class FetchContext:
             "words": words,
             "warnings": self.warnings + list(metadata.get("warnings", [])),
             "library_dir": folder, "reused": False,
+            "lessons_log": os.path.join(storage.home_dir(), "lessons.jsonl"),
+            "notes_file": os.path.join(storage.home_dir(), "notes.md"),
         }
         stored = dict(result, fetched_by="cast2skill", language_reason=metadata.get("language_reason"),
                       extra=metadata.get("extra", {}))

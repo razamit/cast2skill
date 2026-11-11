@@ -6,6 +6,7 @@
     cast2skill.py transcribe FILE --lang he|en [--speakers] [--out PATH]
     cast2skill.py config get|set KEY [VALUE]
     cast2skill.py log < entries.json
+    cast2skill.py check < lesson.md
 
 Every subcommand prints exactly one JSON object on stdout. Human-readable
 progress goes to stderr. On failure the object is
@@ -75,6 +76,7 @@ def build_parser():
     config.add_argument("value", nargs="?")
 
     sub.add_parser("log", help="record proposed lessons and decisions (JSON on stdin)")
+    sub.add_parser("check", help="scan a lesson's text (stdin) for things it must never instruct")
     return parser
 
 
