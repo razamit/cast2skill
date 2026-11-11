@@ -54,6 +54,8 @@ class FetchContext:
         stored = storage.read_source_json(folder) or {}
         if self.args.speakers and not stored.get("has_speakers"):
             return None  # the old transcript lacks what was asked for now
+        if self.args.lang and stored.get("language") != self.args.lang:
+            return None  # asked for another language: fetch again
         stored["reused"] = True
         stored["warnings"] = list(stored.get("warnings", [])) + ["reused_existing_transcript"]
         stored["transcript_path"] = os.path.join(folder, TRANSCRIPT_NAME)

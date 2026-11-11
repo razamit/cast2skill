@@ -49,43 +49,91 @@ def transcribe_episode(context, feed, episode, url):
     return download_and_transcribe(context, metadata, episode.audio_url, episode.title, feed.language)
 
 
-def find_in_feed(feed, hint, query):
-    """Match by guid, then title, then the link's slug; else needs_episode."""
+def episode_from_user(context, episodes):
+    """--episode-id (exact) or --episode (spec matching, warned when fuzzy), else None."""
+    args = context.args
+    if getattr(args, "episode_id", None):
+        return episode_match.by_key(episodes, args.episode_id)
+    if args.episode:
+        episode = episode_match.match(episodes, args.episode)
+        if episode_match.normalize_title(episode.title) != episode_match.normalize_title(args.episode):
+            context.warnings.append("episode_fuzzy_match")
+        return episode
+    return None
+
+
+def episode_from_link(feed, hint):
+    """What the link itself identifies: guid, exact title, or a unique slug prefix. Never fuzzy."""
     if hint.guid:
-        for episode in feed.episodes:
-            if episode.guid == hint.guid:
-                return episode
-    return episode_match.recent_or_match(feed.episodes, query or hint.title or hint.slug)
+        found = next((episode for episode in feed.episodes if episode.guid == hint.guid), None)
+        if found:
+            return found
+    if hint.title:
+        return episode_match.exact(feed.episodes, hint.title)
+    if hint.slug:
+        return episode_match.by_prefix(feed.episodes, hint.slug)
+    return None
+
+
+def links_to_episode(hint):
+    return bool(hint.title or hint.slug or hint.guid)
+
+
+def user_is_choosing(context, hint):
+    """The user named an episode (--episode, --episode-id), or the link names none (a show link)."""
+    named = context.args.episode or getattr(context.args, "episode_id", None)
+    return bool(named) or not links_to_episode(hint)
+
+
+def episode_in(feed, context, hint):
+    """The wanted episode in this feed, or None. A show link with nothing named raises the list."""
+    if user_is_choosing(context, hint):
+        episode = episode_from_user(context, feed.episodes)
+        if episode is None and not links_to_episode(hint):
+            episode_match.recent_or_match(feed.episodes, None)
+        return episode
+    return episode_from_link(feed, hint)
 
 
 def fetch_from_hint(context, hint, url):
-    """Try each candidate feed until one contains the episode.
+    """Try each candidate feed until one holds the episode.
 
-    With no known title (an Apple show link) or with --episode, the user is
-    choosing from one feed, so its errors, including the candidate list, go
-    straight back. With a known title, a feed that fails or lacks the episode
-    is skipped: it may be a different show with a similar name.
+    A title from a link is matched exactly: adjacent episodes ("#412" and
+    "#413") score above 0.8, so a fuzzy hit is offered to the user, never
+    picked. Feeds that fail or lack the episode are skipped (a different show
+    with a similar name), except that a single feed's errors go straight back
+    when the user is choosing from it.
     """
+    near, wanted = [], hint.title or hint.slug
     for feed_url in hint.feed_urls:
         try:
             feed = podcast_feeds.fetch_feed(feed_url)
-            episode = find_in_feed(feed, hint, context.args.episode)
+            episode = episode_in(feed, context, hint)
         except CastError:
-            if not hint.title or context.args.episode:
+            if user_is_choosing(context, hint) and len(hint.feed_urls) == 1:
                 raise
             continue
-        return transcribe_episode(context, feed, episode, url)
+        if episode:
+            return transcribe_episode(context, feed, episode, url)
+        if wanted:
+            near += episode_match.near_misses(feed.episodes, wanted)
 
-    if hint.audio_url:  # Apple still knows where the audio is
-        source_id = "podcast:" + short_hash(hint.guid or hint.audio_url)
-        reused = context.reuse(source_id)
-        if reused:
-            return reused
-        metadata = {"id": source_id, "kind": "podcast", "title": hint.title, "url": url,
-                    "extra": {"feed_url": hint.feed_urls[0], "not_in_feed": True}}
-        return download_and_transcribe(context, metadata, hint.audio_url, hint.title)
-    raise CastError(NO_PUBLIC_FEED, f"\"{hint.title}\" is not in any public feed found.",
+    if hint.audio_url and not user_is_choosing(context, hint):  # Apple knows this exact episode's audio
+        return transcribe_apple_audio(context, hint, url)
+    if near:
+        episode_match.ask_user(f"No episode is titled exactly \"{wanted}\". Closest:", near[:3])
+    raise CastError(NO_PUBLIC_FEED, f"\"{wanted or 'This episode'}\" is not in any public feed found.",
                     podcast_lookup.SPOTIFY_ONLY_HINT)
+
+
+def transcribe_apple_audio(context, hint, url):
+    source_id = "podcast:" + short_hash(hint.guid or hint.audio_url)
+    reused = context.reuse(source_id)
+    if reused:
+        return reused
+    metadata = {"id": source_id, "kind": "podcast", "title": hint.title, "url": url,
+                "extra": {"feed_url": hint.feed_urls[0], "not_in_feed": True}}
+    return download_and_transcribe(context, metadata, hint.audio_url, hint.title)
 
 
 def fetch_apple(source, context):
@@ -99,7 +147,11 @@ def fetch_spotify(source, context):
 
 def fetch_feed_url(source, context):
     feed = podcast_feeds.fetch_feed(source.value)
-    episode = episode_match.recent_or_match(feed.episodes, context.args.episode)
+    episode = episode_from_user(context, feed.episodes)
+    if episode is None:
+        if getattr(context.args, "episode_id", None):
+            raise CastError(NO_PUBLIC_FEED, "That episode_id is not in this feed.", "Run without --episode-id to list episodes.")
+        episode_match.recent_or_match(feed.episodes, None)  # raises with the recent list
     return transcribe_episode(context, feed, episode, episode.link or source.value)
 
 

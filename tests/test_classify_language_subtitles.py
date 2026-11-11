@@ -51,9 +51,15 @@ class ClassifierTests(unittest.TestCase):
 
     def test_anything_else_is_pasted_text(self):
         self.assertRoute("Have the agent write the failing test first.", "text", classify.ROUTE_PASTED)
-        self.assertRoute("/no/such/file.mp3", "text", classify.ROUTE_PASTED)
+        self.assertRoute("talk.mp3 was great, try it", "text", classify.ROUTE_PASTED)
         source = classify.classify("-", stdin_text="from stdin")
         self.assertEqual((source.route, source.value), (classify.ROUTE_PASTED, "from stdin"))
+
+    def test_mistyped_path_is_an_error_not_text(self):
+        for typo in ("/no/such/file.mp3", "~/Downloads/no-such-interview.m4a", "notes/missing.txt"):
+            with self.subTest(typo=typo), self.assertRaises(errors.CastError) as caught:
+                classify.classify(typo)
+            self.assertEqual(caught.exception.code, errors.FILE_NOT_FOUND)
 
     def test_youtube_ids(self):
         for url in ("https://youtu.be/arj7oStGLkU?t=3", "https://www.youtube.com/watch?v=arj7oStGLkU&list=x",

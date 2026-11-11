@@ -8,7 +8,6 @@ falls back to the bundle macOS keeps at /etc/ssl/cert.pem.
 
 import json
 import os
-import shutil
 import ssl
 import urllib.error
 import urllib.request
@@ -19,6 +18,7 @@ SYSTEM_CA_BUNDLE = "/etc/ssl/cert.pem"
 USER_AGENT = "cast2skill/0.1 (+https://github.com/razamit/cast2skill)"
 TIMEOUT_S = 30
 MAX_TEXT_BYTES = 20 * 1024 * 1024  # feeds and API answers; audio goes through download()
+MAX_DOWNLOAD_BYTES = 2 * 1024 ** 3  # a 10-hour 128 kbps episode is about 0.6 GB
 
 
 def ca_bundle_override():
@@ -43,7 +43,13 @@ def subprocess_env():
     return env
 
 
-def open_url(url, timeout=TIMEOUT_S):
+def require_http(url, error_code):
+    if not url.lower().startswith(("https://", "http://")):
+        raise CastError(error_code, f"Refusing a non-web link: {url[:120]}", "Only http(s) links are fetched.")
+
+
+def open_url(url, timeout=TIMEOUT_S, error_code=LOOKUP_FAILED):
+    require_http(url, error_code)
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     return urllib.request.urlopen(request, timeout=timeout, context=ssl_context())
 
@@ -72,12 +78,29 @@ def get_json(url, error_code=LOOKUP_FAILED, hint=""):
         raise CastError(error_code, f"{url} did not return JSON.", hint)
 
 
+def copy_with_limit(response, handle, limit=MAX_DOWNLOAD_BYTES):
+    copied = 0
+    while True:
+        chunk = response.read(1024 * 1024)
+        if not chunk:
+            return copied
+        copied += len(chunk)
+        if copied > limit:
+            raise CastError(DOWNLOAD_FAILED, f"The download is larger than {limit // 2**30} GB; stopped.",
+                            "Download the audio yourself and pass the file.")
+        handle.write(chunk)
+
+
 def download(url, destination):
     """Stream a file to disk (written to a .part file, then renamed)."""
     partial = destination + ".part"
     try:
-        with open_url(url, timeout=120) as response, open(partial, "wb") as handle:
-            shutil.copyfileobj(response, handle, length=1024 * 1024)
+        with open_url(url, timeout=120, error_code=DOWNLOAD_FAILED) as response, open(partial, "wb") as handle:
+            copy_with_limit(response, handle)
+    except CastError:
+        if os.path.exists(partial):
+            os.remove(partial)
+        raise
     except (urllib.error.URLError, OSError, ValueError) as exc:
         if os.path.exists(partial):
             os.remove(partial)

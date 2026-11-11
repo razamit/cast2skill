@@ -6,6 +6,40 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-11: M6, README, LICENSE, marketplace file, local install test, independent review and fixes. 🟡 PARTIAL: everything built and committed; waiting at GATE B for the owner's manual table. [unreleased]**
+Scope: `README.md` (SPEC.md §14 order, injection fixture's expected behavior),
+`LICENSE` (MIT, was missing from M2), `.claude-plugin/marketplace.json`
+(name `cast2skill`, source `./`), doctor can save `transcriber_dir` after a yes.
+Independent review (agent that did not write the code): 0 blockers, 6
+should-fix, 3 nits. Fixed: shell injection through feed titles and a fixed
+heredoc delimiter (decision 26), silent adjacent-episode pick (27), 17 `check`
+bypasses (28), typo paths, `--lang` reuse, entity scan, `file://` enclosures
+(29). Left: three nits, ticketed.
+
+Proof: `python3 -m unittest discover -b -s tests -t .` → `Ran 97 tests OK`;
+`claude plugin validate --strict .` and `.claude-plugin/marketplace.json` →
+both "✔ Validation passed". Local marketplace install in an isolated
+`CLAUDE_CONFIG_DIR`: `marketplace add <repo>` → added `cast2skill`; `plugin
+install cast2skill@cast2skill` → installed 0.1.0, "Skills (2) doctor, learn";
+the cached copy at `plugins/cache/cast2skill/cast2skill/0.1.0/` ran `doctor`
+and `fetch -` on its own. Headless reruns after the fixes: delimiter-collision
+paste stored verbatim, `/tmp/c2s_pwned` not created, logged as
+`nothing_worth_adding`.
+
+Manual table (SPEC.md §12) status for GATE B: verified by me, script level
+or headless: 1 (fetch only), 7, 8, 9, 11. Not run: 2 (Hebrew video without
+captions), 3 and 4 end to end with lesson steps (fetch-level live checks done
+at M4), 5 (no real Spotify-only episode found), 6 (only on a 5 s synthetic
+clip), 10 (interactive writes). Nothing pushed, tagged or published.
+Files: `README.md`, `LICENSE`, `.claude-plugin/marketplace.json`,
+`skills/doctor/SKILL.md`, `skills/learn/SKILL.md`, `skills/learn/scripts/cast2skill.py`,
+`cast2skill_core/{lesson_check,episode_match,sources_podcast,classify,fetch_context,podcast_feeds,http_client}.py`,
+`tests/{test_classify_language_subtitles,test_fetch_routes,test_podcasts,test_learn_safety_and_log}.py`,
+`docs/tickets/2026-11-11-small-follow-ups-from-m6-review.md`, devlog.
+Refs: decisions 26 to 29.
+
+---
+
 **2026-11-11: M5, `learn` skill, rubric, writing rules, `log` and `check`. 🟡 PARTIAL: manual cases 8 and 9 pass headless; 10 not run. [unreleased]**
 New: `skills/learn/SKILL.md` (flow from SPEC.md §7, safety rules first,
 pasted text via heredoc, `check` before any skill or rule), `reference/rubric.md`,

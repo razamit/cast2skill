@@ -2,7 +2,7 @@
 """cast2skill command line: the deterministic half of the plugin.
 
     cast2skill.py doctor [--transcriber-dir DIR]
-    cast2skill.py fetch SOURCE [--lang he|en] [--speakers] [--fast] [--episode QUERY]
+    cast2skill.py fetch SOURCE [--lang he|en] [--speakers] [--fast] [--episode QUERY | --episode-id ID]
     cast2skill.py transcribe FILE --lang he|en [--speakers] [--out PATH]
     cast2skill.py config get|set KEY [VALUE]
     cast2skill.py log < entries.json
@@ -61,6 +61,7 @@ def build_parser():
     fetch.add_argument("--speakers", action="store_true", help="anonymous speaker labels")
     fetch.add_argument("--fast", action="store_true", help="captions only, never download audio")
     fetch.add_argument("--episode", help="which podcast episode, by title")
+    fetch.add_argument("--episode-id", help="which podcast episode, by the episode_id a candidate list gave")
     fetch.add_argument("--transcriber-dir")
 
     transcribe = sub.add_parser("transcribe", help="transcribe one local audio file")

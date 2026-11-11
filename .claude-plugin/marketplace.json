@@ -1,0 +1,15 @@
+{
+  "name": "cast2skill",
+  "description": "cast2skill: turn a podcast, video or text into Claude Code skills you approve.",
+  "owner": {
+    "name": "Amit Raz",
+    "url": "https://github.com/razamit"
+  },
+  "plugins": [
+    {
+      "name": "cast2skill",
+      "source": "./",
+      "description": "Turn a podcast, video or text into skills you approve. Local and free."
+    }
+  ]
+}

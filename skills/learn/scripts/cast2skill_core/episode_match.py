@@ -6,6 +6,7 @@ top three candidates go back to the skill, which asks the user.
 """
 
 import difflib
+import hashlib
 import re
 import unicodedata
 
@@ -27,13 +28,44 @@ def ratio(query, title):
     return difflib.SequenceMatcher(None, normalize_title(query), normalize_title(title)).ratio()
 
 
+def episode_key(episode):
+    """Short hex id for an episode: shell-safe, so the skill reruns with it, never a title."""
+    return hashlib.sha1((episode.guid or episode.audio_url).encode("utf-8")).hexdigest()[:16]
+
+
 def describe(episode):
-    return {"title": episode.title, "published": episode.published, "duration_s": episode.duration_s}
+    return {"episode_id": episode_key(episode), "title": episode.title,
+            "published": episode.published, "duration_s": episode.duration_s}
+
+
+def by_key(episodes, key):
+    return next((episode for episode in episodes if episode_key(episode) == key), None)
+
+
+def exact(episodes, title):
+    """Exact match after normalizing, or None. For titles that came from a link."""
+    wanted = normalize_title(title)
+    return next((episode for episode in episodes if normalize_title(episode.title) == wanted), None)
+
+
+def by_prefix(episodes, slug):
+    """An Apple link slug is the start of the title, cut short. Unique prefix match, or None."""
+    wanted = normalize_title(slug)
+    if len(wanted.split()) < 3:
+        return None
+    found = [episode for episode in episodes if normalize_title(episode.title).startswith(wanted)]
+    return found[0] if len(found) == 1 else None
+
+
+def near_misses(episodes, title):
+    """Episodes at or above the fuzzy threshold that are not exact: never picked silently."""
+    ranked = sorted(episodes, key=lambda episode: ratio(title, episode.title), reverse=True)
+    return [episode for episode in ranked[:CANDIDATE_COUNT] if ratio(title, episode.title) >= MIN_RATIO]
 
 
 def ask_user(message, episodes):
     raise CastError(NEEDS_EPISODE, message,
-                    "Ask the user which episode, then rerun with --episode \"<exact title>\".",
+                    "Ask the user which episode, then rerun with --episode-id <its episode_id>.",
                     candidates=[describe(episode) for episode in episodes])
 
 

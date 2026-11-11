@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
 
-from .errors import BAD_ARGUMENTS, CastError
+from .errors import BAD_ARGUMENTS, FILE_NOT_FOUND, CastError
 
 AUDIO_EXTENSIONS = (".mp3", ".m4a", ".wav", ".aac", ".ogg", ".flac", ".mp4")
 TEXT_EXTENSIONS = (".txt", ".md", ".vtt", ".srt")
@@ -106,4 +106,15 @@ def classify(argument, stdin_text=None):
     expanded = os.path.expanduser(text)
     if "\n" not in text and len(text) < 1024 and os.path.isfile(expanded):
         return classify_file(os.path.abspath(expanded))
+    if looks_like_missing_file(text):
+        raise CastError(FILE_NOT_FOUND, f"No such file: {expanded}",
+                        "Check the path. To learn from text, paste the text itself.")
     return Source(TEXT, ROUTE_PASTED, text)
+
+
+def looks_like_missing_file(text):
+    """A single path-like token with a known extension: a typo, not text to learn from."""
+    if not text or any(char.isspace() for char in text.strip()):
+        return False
+    path_like = text.startswith(("/", "~", "./", "../")) or "/" in text
+    return path_like and text.lower().endswith(AUDIO_EXTENSIONS + TEXT_EXTENSIONS)

@@ -13,7 +13,7 @@ from tests.support import IsolatedHomeTestCase, fixture_path, read_fixture
 
 def fetch_args(*source, **overrides):
     values = dict(source=list(source), lang=None, speakers=False, fast=False, episode=None,
-                  transcriber_dir=None)
+                  episode_id=None, transcriber_dir=None)
     values.update(overrides)
     return argparse.Namespace(**values)
 
@@ -69,6 +69,11 @@ class TextRouteTests(IsolatedHomeTestCase):
         self.assertEqual(second["transcript_path"], first["transcript_path"])
         self.assertTrue(second["reused"])
         self.assertIn("reused_existing_transcript", second["warnings"])
+
+    def test_different_lang_is_not_reused(self):
+        fetch.fetch(fetch_args("same words", lang="en"))
+        second = fetch.fetch(fetch_args("same words", lang="he"))
+        self.assertEqual((second["reused"], second["language"]), (False, "he"))
 
     def test_empty_stdin(self):
         with self.assertRaises(errors.CastError) as caught:

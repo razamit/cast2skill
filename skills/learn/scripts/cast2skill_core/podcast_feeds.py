@@ -81,7 +81,7 @@ def looks_like_feed(body):
 
 def parse_feed(body, url):
     """Parse RSS bytes. Raises feed_unreadable for broken, entity-laden or non-podcast XML."""
-    if b"<!ENTITY" in body[:65536]:
+    if b"<!entity" in body.lower():  # anywhere: a long comment can push the DOCTYPE far down
         raise CastError(FEED_UNREADABLE, f"Refusing a feed that declares XML entities: {url}", FEED_HINT)
     try:
         root = ElementTree.fromstring(body)

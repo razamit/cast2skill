@@ -45,6 +45,23 @@ class FeedParsingTests(IsolatedHomeTestCase):
                 podcast_feeds.parse_feed(body, FEED_URL)
             self.assertEqual(caught.exception.code, errors.FEED_UNREADABLE)
 
+    def test_entity_declaration_after_a_long_comment_is_refused(self):
+        body = b'<?xml version="1.0"?>\n<!--' + b"x" * 70000 + b'-->\n' + feed_bytes("entity_feed.xml").split(b"\n", 1)[1]
+        with self.assertRaises(errors.CastError) as caught:
+            podcast_feeds.parse_feed(body, FEED_URL)
+        self.assertEqual(caught.exception.code, errors.FEED_UNREADABLE)
+
+    def test_non_web_links_are_refused(self):
+        for url in ("file:///etc/passwd", "ftp://x/y.mp3"):
+            with self.subTest(url=url), self.assertRaises(errors.CastError) as caught:
+                http_client.download(url, os.path.join(self.home, "a.mp3"))
+            self.assertEqual(caught.exception.code, errors.DOWNLOAD_FAILED)
+
+    def test_download_size_cap(self):
+        import io
+        with self.assertRaises(errors.CastError):
+            http_client.copy_with_limit(io.BytesIO(b"x" * 3000), io.BytesIO(), limit=1000)
+
     def test_html_page_is_not_a_feed(self):
         with mock.patch.object(http_client, "get_bytes", return_value=(b"<!doctype html><html>", "text/html")):
             with self.assertRaises(errors.CastError) as caught:
@@ -67,7 +84,8 @@ class EpisodeMatchingTests(IsolatedHomeTestCase):
         self.assertEqual(caught.exception.code, errors.NEEDS_EPISODE)
         candidates = caught.exception.extra["candidates"]
         self.assertEqual(len(candidates), 3)
-        self.assertEqual(set(candidates[0]), {"title", "published", "duration_s"})
+        self.assertEqual(set(candidates[0]), {"episode_id", "title", "published", "duration_s"})
+        self.assertRegex(candidates[0]["episode_id"], r"^[0-9a-f]{16}$")
 
     def test_hebrew_titles(self):
         episode = episode_match.match(sample_feed().episodes, "פרק 39 - סוכנים בדיקות ומה שביניהם")
@@ -159,6 +177,29 @@ class RouteTests(IsolatedHomeTestCase):
                               [{"feedUrl": "https://other.example.com/feed"}, {"feedUrl": FEED_URL}], "Shipping")
         self.assertEqual(self.downloads.call_args.args[0], "https://cdn.example.com/ep42.m4a")
         self.assertEqual(result["kind"], "podcast")
+
+    def test_spotify_adjacent_episode_is_offered_not_picked(self):
+        # "Ep. 43" is not in the feed; "Ep. 42: ..." scores above 0.8 and must not be picked silently.
+        hit = {"trackName": "Ep. 43: Tests first, always?", "feedUrl": FEED_URL}
+        with self.assertRaises(errors.CastError) as caught:
+            self.spotify("Ep. 43: Tests first, always?", [hit])
+        self.assertEqual(caught.exception.code, errors.NEEDS_EPISODE)
+        self.assertEqual(caught.exception.extra["candidates"][0]["title"], "Ep. 42: Tests first, always?")
+        self.downloads.assert_not_called()
+
+    def test_rerun_with_episode_id_from_the_candidates(self):
+        key = episode_match.episode_key(sample_feed().episodes[0])
+        result = fetch.fetch(fetch_args(FEED_URL, episode_id=key))
+        self.assertEqual(result["title"], "Ep. 42: Tests first, always?")
+
+    def test_user_typed_fuzzy_episode_is_warned(self):
+        result = fetch.fetch(fetch_args(FEED_URL, episode="Ep 41: Reviews that catch real bug"))
+        self.assertIn("episode_fuzzy_match", result["warnings"])
+
+    def test_apple_truncated_slug_matches_by_prefix(self):
+        with mock.patch.object(podcast_lookup, "itunes", return_value=apple_lookup_results()[:1]):
+            result = fetch.fetch(fetch_args("https://podcasts.apple.com/us/podcast/ep-40-planning-before/id123?i=999"))
+        self.assertEqual(result["title"], "Ep. 40: Planning before prompting")
 
     def test_spotify_only_episode(self):
         for searches in (([], []), ([], [{"feedUrl": FEED_URL}])):
