@@ -40,6 +40,13 @@ def is_apple_silicon():
     return sys.platform == "darwin" and platform.machine() == "arm64"
 
 
+def require_apple_silicon():
+    if not is_apple_silicon():
+        raise CastError(TRANSCRIPTION_UNSUPPORTED,
+                        "Local transcription needs an Apple Silicon Mac.",
+                        "Use a YouTube link with captions (--fast), or a text file.")
+
+
 def candidate_dirs(explicit_dir, config):
     """(where it came from, path) in lookup order. Unset sources are skipped."""
     configured = [
@@ -121,10 +128,7 @@ def transcribe(directory, audio_path, lang, with_speakers, output_path=None):
     The transcriber's stderr carries the whole transcript as it runs, so it is
     captured and only its last line is surfaced, on failure.
     """
-    if not is_apple_silicon():
-        raise CastError(TRANSCRIPTION_UNSUPPORTED,
-                        "Local transcription needs an Apple Silicon Mac.",
-                        "Use a YouTube link with captions (--fast), or a text file.")
+    require_apple_silicon()
     flags = ["--file", audio_path, "--lang", lang, "--json"]
     if output_path:
         flags += ["--out", output_path]

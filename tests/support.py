@@ -32,6 +32,10 @@ class IsolatedHomeTestCase(unittest.TestCase):
         self.addCleanup(patcher.stop)
         os.environ.pop("CAST2SKILL_TRANSCRIBER_DIR", None)
 
+    def library_entries(self):
+        library = os.path.join(self.home, "library")
+        return sorted(os.listdir(library)) if os.path.isdir(library) else []
+
     def start_patch(self, patcher):
         started = patcher.start()
         self.addCleanup(patcher.stop)

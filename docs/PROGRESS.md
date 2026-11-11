@@ -6,6 +6,32 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-11: M3, `fetch` for text, local audio and YouTube. ✅ DONE. [unreleased]**
+New modules: `classify` (all §6.3 rows, incl. M4's), `language`, `subtitles`
+(rolling-caption dedupe, ~30 s paragraphs), `http_client` (CA fallback),
+`youtube` (yt-dlp), `fetch_context` (library folders, reuse, local
+transcription, result/source.json), `sources_local`, `sources_youtube`,
+`fetch`. Pasted text goes through `fetch -` on stdin (decision 14).
+
+Proof: `python3 -m unittest discover -s tests -t .` → `Ran 50 tests OK`.
+Real runs (temp `CAST2SKILL_HOME`, yt-dlp 2026.10.26 in a scratch venv since
+none is installed on this Mac): manual case 1, TED `arj7oStGLkU` →
+`manual_captions`, 2,273 words, no audio download, 3.6 s; auto captions
+`--fast` on `3aKVArutiIU` (no human captions) → `auto_captions` with
+`auto_captions_lower_quality`, 6,154 raw caption words deduped to 2,076;
+same video without `--fast` → audio downloaded, transcribed locally, audio
+deleted, 2,166 words in 12.5 s for 596 s of audio; manual case 7 (pasted
+text with `$HOME` and backticks) stored byte for byte; local `.m4a
+--speakers` → `SPEAKER_00` lines; second fetch of the same file →
+`reused`; local audio with no language → `needs_lang`, no folder left.
+Not run: case 2 (Hebrew video without captions) for real; only the routing
+is unit-tested. Files: `skills/learn/scripts/cast2skill_core/{classify,language,subtitles,http_client,youtube,fetch_context,sources_local,sources_youtube,fetch}.py`,
+`tests/test_classify_language_subtitles.py`, `tests/test_fetch_routes.py`,
+`tests/support.py`, `tests/fixtures/auto_captions.vtt` (synthetic, real
+structure), `tests/fixtures/manual_captions.srt`, devlog. Refs: decisions 14, 16 to 19.
+
+---
+
 **2026-11-11: M2, plugin scaffold, `plugin.json`, `doctor`, `config`, `transcribe`. ✅ DONE. [unreleased]**
 Owner said: continue without stopping at gates, commit along the way, test at
 the end. M1 committed on audio_transcriber `cli-flags` as `43bbd98` (not

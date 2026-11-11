@@ -1,0 +1,13 @@
+1
+00:00:01,000 --> 00:00:04,000
+<i>Welcome back.</i> Today: one habit
+that changed how I ship.
+
+2
+00:00:04,500 --> 00:00:08,000
+{\an8}Write the plan down before the code.
+
+3
+00:00:35,000 --> 00:00:39,500
+Then check the plan
+against what actually shipped.

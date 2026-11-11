@@ -1,0 +1,100 @@
+WEBVTT
+Kind: captions
+Language: en
+
+00:00:00.160 --> 00:00:03.060 align:start position:0%
+ 
+so<00:00:00.460><c> today</c><00:00:00.760><c> I</c><00:00:01.060><c> want</c><00:00:01.360><c> to</c><00:00:01.660><c> show</c><00:00:01.960><c> you</c><00:00:02.260><c> how</c><00:00:02.560><c> I</c><00:00:02.860><c> review</c><00:00:03.160><c> code</c>
+
+00:00:03.060 --> 00:00:03.070 align:start position:0%
+so today I want to show you how I review code
+ 
+
+00:00:03.070 --> 00:00:05.970 align:start position:0%
+so today I want to show you how I review code
+with<00:00:03.370><c> an</c><00:00:03.670><c> agent</c><00:00:03.970><c> before</c><00:00:04.270><c> I</c><00:00:04.570><c> merge</c><00:00:04.870><c> anything</c><00:00:05.170><c> and</c><00:00:05.470><c> it</c>
+
+00:00:05.970 --> 00:00:05.980 align:start position:0%
+with an agent before I merge anything and it
+ 
+
+00:00:05.980 --> 00:00:08.880 align:start position:0%
+with an agent before I merge anything and it
+starts<00:00:06.280><c> with</c><00:00:06.580><c> one</c><00:00:06.880><c> rule</c><00:00:07.180><c> the</c><00:00:07.480><c> agent</c><00:00:07.780><c> writes</c><00:00:08.080><c> the</c>
+
+00:00:08.880 --> 00:00:08.890 align:start position:0%
+starts with one rule the agent writes the
+ 
+
+00:00:08.890 --> 00:00:11.790 align:start position:0%
+starts with one rule the agent writes the
+failing<00:00:09.190><c> test</c><00:00:09.490><c> first</c><00:00:09.790><c> and</c><00:00:10.090><c> runs</c><00:00:10.390><c> it</c><00:00:10.690><c> so</c><00:00:10.990><c> you</c><00:00:11.290><c> see</c>
+
+00:00:11.790 --> 00:00:11.800 align:start position:0%
+failing test first and runs it so you see
+ 
+
+00:00:11.800 --> 00:00:14.700 align:start position:0%
+failing test first and runs it so you see
+it<00:00:12.100><c> fail</c><00:00:12.400><c> and</c><00:00:12.700><c> only</c><00:00:13.000><c> then</c><00:00:13.300><c> does</c><00:00:13.600><c> it</c><00:00:13.900><c> implement</c>
+
+00:00:14.700 --> 00:00:14.710 align:start position:0%
+it fail and only then does it implement
+ 
+
+00:00:14.710 --> 00:00:17.610 align:start position:0%
+it fail and only then does it implement
+the<00:00:15.010><c> change</c><00:00:15.310><c> &amp;</c><00:00:15.610><c> that</c><00:00:15.910><c> order</c><00:00:16.210><c> matters</c><00:00:16.510><c> more</c><00:00:16.810><c> than</c>
+
+00:00:17.610 --> 00:00:17.620 align:start position:0%
+the change &amp; that order matters more than
+ 
+
+00:00:17.620 --> 00:00:20.520 align:start position:0%
+the change &amp; that order matters more than
+people<00:00:17.920><c> think</c><00:00:18.220><c> because</c><00:00:18.520><c> a</c><00:00:18.820><c> test</c><00:00:19.120><c> you</c><00:00:19.420><c> never</c><00:00:19.720><c> saw</c>
+
+00:00:20.520 --> 00:00:20.530 align:start position:0%
+people think because a test you never saw
+ 
+
+00:00:20.530 --> 00:00:26.530 align:start position:0%
+people think because a test you never saw
+fail<00:00:20.830><c> proves</c><00:00:21.130><c> nothing</c><00:00:21.430><c> at</c><00:00:21.730><c> all</c>
+
+00:00:26.530 --> 00:00:26.540 align:start position:0%
+fail proves nothing at all
+ 
+
+00:00:26.540 --> 00:00:29.440 align:start position:0%
+fail proves nothing at all
+[Music]
+
+00:00:29.440 --> 00:00:29.450 align:start position:0%
+[Music]
+ 
+
+00:00:29.450 --> 00:00:32.350 align:start position:0%
+[Music]
+the<00:00:29.750><c> second</c><00:00:30.050><c> habit</c><00:00:30.350><c> is</c><00:00:30.650><c> to</c><00:00:30.950><c> ask</c><00:00:31.250><c> for</c><00:00:31.550><c> a</c><00:00:31.850><c> diff</c>
+
+00:00:32.350 --> 00:00:32.360 align:start position:0%
+the second habit is to ask for a diff
+ 
+
+00:00:32.360 --> 00:00:35.260 align:start position:0%
+the second habit is to ask for a diff
+summary<00:00:32.660><c> that</c><00:00:32.960><c> names</c><00:00:33.260><c> every</c><00:00:33.560><c> file</c><00:00:33.860><c> it</c><00:00:34.160><c> touched</c>
+
+00:00:35.260 --> 00:00:35.270 align:start position:0%
+summary that names every file it touched
+ 
+
+00:00:35.270 --> 00:00:38.170 align:start position:0%
+summary that names every file it touched
+including<00:00:35.570><c> the</c><00:00:35.870><c> ones</c><00:00:36.170><c> it</c><00:00:36.470><c> changed</c><00:00:36.770><c> by</c><00:00:37.070><c> accident</c>
+
+00:00:38.170 --> 00:00:38.180 align:start position:0%
+including the ones it changed by accident
+ 
+
