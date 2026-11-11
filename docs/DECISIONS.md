@@ -1,0 +1,37 @@
+# Decisions
+
+Append-only. These are not preferences. They are decisions made for specific
+reasons, and changing them requires going back to those reasons. New rows at
+the bottom; a superseded decision gets a new row naming the old one, never an
+edit.
+
+| # | Date | Who | Decision: why, alternatives rejected, proof, files |
+|---|------|-----|----------------------------------------------------|
+| 1 | 2026-11-11 | Amit + Claude | **Adopted the devlog system (progress log, decision log, tickets, releases, session-wrap discipline).** Why: decisions and observations otherwise live only in conversations and the spec, invisible to future sessions. Files: `docs/PROGRESS.md`, `docs/DECISIONS.md`, `docs/tickets/`, `docs/RELEASES.md`, `CHANGELOG.md`, `CLAUDE.md` (moved to `.claude/CLAUDE.md`, row 6). |
+| 2 | 2026-11-11 | Amit (owner) | **Plugin name is `cast2skill`, permanent.** Why: the plugin `name` cannot change once people install it. Source: `SPEC.md` §5 (plugin.json) and §16. |
+| 3 | 2026-11-11 | Amit (owner) | **Speaker diarization is off by default; opt in with `--speakers`.** Source: `SPEC.md` §16. |
+| 4 | 2026-11-11 | Amit (owner) | **Free and open source (MIT). No paid tier in v1.** Source: `SPEC.md` §5 (LICENSE) and §16. |
+| 5 | 2026-11-11 | Amit (owner) | **Version lives in `.claude-plugin/plugin.json` `version`, starting at 0.1.0, and is bumped on every release.** Why: users do not receive updates unless the version changes. Source: `SPEC.md` §5. Registry: `docs/RELEASES.md`. |
+| 6 | 2026-11-11 | Claude | **Project memory lives in `.claude/CLAUDE.md`, not a root `CLAUDE.md`.** Why: the repo root is the plugin root, and `claude plugin validate --strict` fails on a root `CLAUDE.md` ("CLAUDE.md at the plugin root is not loaded as project context"), which breaks the v1 success criterion in `SPEC.md` §1. Proof: scratch plugin with the spec's plugin.json, root CLAUDE.md → exit 1; same with `.claude/CLAUDE.md` → "Validation passed", exit 0. Rejected: keeping it at the root (fails strict). Files: `.claude/CLAUDE.md`. |
+| 7 | 2026-11-11 | Amit (owner) | **Default scope for new skills is user (`~/.claude/skills/`) when a lesson is not clearly about the current project's stack** (the `SPEC.md` §7 rule still applies first; user can override per lesson). Why: reusable across projects. Rejected: project as fallback (ties general lessons to one repo and commits them). Resolves open question 1. |
+| 8 | 2026-11-11 | Amit (owner) | **Notes file is `~/.cast2skill/notes.md`.** Why: next to the library and logs, easy to find. Rejected: `${CLAUDE_PLUGIN_DATA}` (hidden under `~/.claude/plugins/data/`). Resolves open question 2. |
+| 9 | 2026-11-11 | Amit (owner) | **audio_transcriber's uncommitted work on `main` (README.md, diarization.py, audio_decoding.py) is committed by the owner before `cli-flags` is branched.** Why: keeps the owner's change and the CLI change in separate commits. Rejected: branching with a dirty tree (both touch README.md), stashing. Resolves open question 3. |
+| 10 | 2026-11-11 | Amit (owner) | **`lessons.md` and `lessons.jsonl` are written by a `cast2skill.py log` subcommand without a per-run yes.** This is an addition to the subcommands in `SPEC.md` §6, approved by the owner. Why: the log records only the candidate cards the user just saw, inside `~/.cast2skill/`; a yes per run adds a prompt to every run. §10.3 still applies to every skill, rule and note. Rejected: show-and-ask for the logs each run. Resolves open question 5. |
+| 11 | 2026-11-11 | Claude (owner did not object) | **Defaults taken at M0:** audio_transcriber gets a `__version__ = "1.0.0"` constant for `--capabilities`; its tests use stdlib `unittest` (no new dependency); marketplace `name` is `cast2skill` (install id `cast2skill@cast2skill`). Rejected: git SHA as version (fails outside a checkout), pytest (new dependency), `razamit` as marketplace name (a plugin in another repo would need its own marketplace anyway). Resolves open questions 4 and 6. |
+| 12 | 2026-11-11 | Claude | **audio_transcriber flag mode: diarization availability is guarded in `cli.py` (`diarization_installed()` catches ImportError), not in `diarization.py`; `--out` is reserved with an exclusive create before transcription and removed if the run fails.** Why: fixing `diarization_is_available()` itself changes the interactive path, which SPEC.md §4 freezes (ticket `2026-11-11-audio-transcriber-interactive-crash-without-pyannote.md`); the existence check alone runs minutes before the write, so two runs with the same `--out` could overwrite each other. Rejected: fixing in `diarization.py` (owner's call, ticketed); check-only `--out`. Proof: `.venv/bin/python -S transcribe.py --capabilities` → `"diarization": false`, exit 0; `--speakers` → exit 3; failed run with `--out` leaves no file. |
+| 13 | 2026-11-11 | Claude | **`cast2skill.py` stays the single entry point; the work lives in a stdlib-only package `skills/learn/scripts/cast2skill_core/` next to it.** Why: the owner's global rule caps files at 500 lines, and fetch, feeds, subtitles, doctor, config and logging together are well past that. The entry imports the package only after its Python 3.10 version guard, so an old python3 still gets a JSON `python_too_old` error. Rejected: one 1,500-line script (breaks the size rule). Also: the doctor skill calls the script through `${CLAUDE_PLUGIN_ROOT}/skills/learn/scripts/`, because `${CLAUDE_SKILL_DIR}` is the doctor skill's own folder (plugins reference). |
+| 14 | 2026-11-11 | Claude | **`fetch -` reads pasted text from stdin, and the learn skill passes pasted text through a quoted heredoc, never on the command line.** Why: `$ARGUMENTS` is substituted literally, and a tweet's quotes, `$` or backticks would break or inject into the shell command. Rejected: putting `$ARGUMENTS` straight into the command (SPEC.md §7 step 1 as written), which is safe only for URLs and paths. |
+| 15 | 2026-11-11 | Claude | **The script runs the transcriber with stdin closed and its stderr captured; only the last stderr line is surfaced, on failure.** Why: closed stdin turns an old, flagless transcriber's prompt into an immediate `Cancelled.` (reported as `transcriber_outdated`) instead of a hang; captured stderr keeps a 60-minute transcript's running output out of Claude's context. Proof: doctor against audio_transcriber `main` → `transcriber_flags` failed, "did not answer --capabilities (Cancelled.)". |
+
+## Open questions
+
+Intentionally deferred decisions. Each states the question and the trigger for
+revisiting it. When resolved, it becomes a decision row and is struck from
+this list with a pointer to that row.
+
+1. ~~Default scope for new skills~~ → row 7.
+2. ~~Where the notes file lives~~ → row 8.
+3. ~~audio_transcriber uncommitted work vs `cli-flags`~~ → row 9.
+4. ~~Version string for `--capabilities`~~ → row 11.
+5. ~~Approval for `lessons.md` / `lessons.jsonl` writes~~ → row 10.
+6. ~~Marketplace `name`~~ → row 11.

@@ -1,0 +1,10 @@
+{
+  "name": "cast2skill",
+  "displayName": "cast2skill",
+  "description": "Turn a podcast, video or text into skills you approve. Local and free.",
+  "version": "0.1.0",
+  "author": { "name": "Amit Raz", "url": "https://github.com/razamit" },
+  "homepage": "https://github.com/razamit/cast2skill",
+  "repository": "https://github.com/razamit/cast2skill",
+  "license": "MIT"
+}
