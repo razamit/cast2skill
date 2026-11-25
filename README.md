@@ -97,6 +97,48 @@ the same source again reuses its transcript. Downloaded audio is deleted after
 transcription (`config set keep_audio true` to keep it). Set `CAST2SKILL_HOME`
 to use another folder.
 
+## Fewer permission prompts
+
+`/cast2skill:learn` pre-approves its own script only for the turn you start it
+in. Claude Code clears that grant at your next message, so after you pick
+lessons every safety check and log call asks again. One allow rule in your
+user settings stops that. `/cast2skill:doctor` prints the exact rule for your
+install as `permission_rule`. It looks like this, with your own home folder:
+
+```
+Bash(python3 /Users/you/.claude/plugins/cache/cast2skill/cast2skill/*/skills/learn/scripts/cast2skill.py *)
+```
+
+Add it with `/permissions` as an allow rule, or in `~/.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 /Users/you/.claude/plugins/cache/cast2skill/cast2skill/*/skills/learn/scripts/cast2skill.py *)"
+    ]
+  }
+}
+```
+
+Copy the path from doctor rather than typing it: the rule is matched against
+the command text, which holds the full path. A `*` in a Bash rule matches any
+text, in the middle as well as at the end
+([permissions docs](https://code.claude.com/docs/en/permissions.md#wildcard-patterns)).
+The middle `*` stands for the plugin's version folder, so the rule survives
+updates. It also matches any path of that shape, including one with `..` in
+it, and Claude Code may warn that it `allows any option at its *`. If you
+would rather have no wildcard there, use `permission_rule_this_version` from
+doctor and replace it after each update. Doctor only shows the rule; it never
+edits your settings.
+
+Writes into `.claude/` folders (your skills, `~/.claude/CLAUDE.md`, the
+project's `.claude/CLAUDE.md`) always ask, and no allow rule changes that.
+That is Claude Code's protection for its own configuration, and cast2skill
+keeps it on purpose so you see every write. In a headless `claude -p` run
+nobody can answer that prompt, so those writes are refused: write skills from
+an interactive session.
+
 ## How lessons are chosen
 
 Every candidate must be:
@@ -141,6 +183,9 @@ sessions.
 - Nothing is written without showing it to you first and getting a yes.
 - Files are written only inside `~/.claude/`, the project's `.claude/`, the
   CLAUDE.md you choose, and `~/.cast2skill/`.
+- The log records a lesson as written only when the file exists in one of
+  those places. A write that failed or that you declined is logged as picked
+  and not written.
 
 The test fixture `tests/fixtures/injection_transcript.txt` is a conversation
 with one real lesson and three planted instructions: run a `curl ... | sh`

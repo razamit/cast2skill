@@ -22,12 +22,15 @@ def read_fixture(name):
 
 
 class IsolatedHomeTestCase(unittest.TestCase):
-    """CAST2SKILL_HOME points at a fresh temp folder; transcriber env cleared."""
+    """CAST2SKILL_HOME and CLAUDE_CONFIG_DIR point at fresh temp folders; transcriber env cleared."""
 
     def setUp(self):
         self.home = tempfile.mkdtemp(prefix="cast2skill-test-")
         self.addCleanup(shutil.rmtree, self.home, ignore_errors=True)
-        patcher = mock.patch.dict(os.environ, {"CAST2SKILL_HOME": self.home})
+        self.claude_config = tempfile.mkdtemp(prefix="cast2skill-claude-config-")
+        self.addCleanup(shutil.rmtree, self.claude_config, ignore_errors=True)
+        patcher = mock.patch.dict(os.environ, {"CAST2SKILL_HOME": self.home,
+                                               "CLAUDE_CONFIG_DIR": self.claude_config})
         patcher.start()
         self.addCleanup(patcher.stop)
         os.environ.pop("CAST2SKILL_TRANSCRIBER_DIR", None)

@@ -114,23 +114,29 @@ class LessonsLogTests(IsolatedHomeTestCase):
         super().setUp()
         self.result = fetch.fetch(fetch_args("Write the failing test first."))
         self.folder = self.result["library_dir"]
+        # written_to must name a file that exists in an allowed place (decision 34).
+        self.user_rules = os.path.join(self.claude_config, "CLAUDE.md")
+        with open(self.user_rules, "w", encoding="utf-8") as handle:
+            handle.write("## Learned\n")
 
     def candidate(self, **overrides):
         item = {"title": "Failing test first", "type": "rule", "what_changes": "Agent shows red first.",
                 "evidence": {"timestamp": "00:01:12", "speaker": "SPEAKER_01", "quote": "write the failing test"},
                 "versus_setup": "new", "confidence": "high", "decision": "picked",
-                "written_to": "/Users/x/.claude/CLAUDE.md"}
+                "written_to": self.user_rules}
         item.update(overrides)
         return item
 
     def test_writes_markdown_and_jsonl(self):
         entry = {"library_dir": self.folder, "outcome": "written",
-                 "candidates": [self.candidate(), self.candidate(title="Second", decision="rejected")]}
+                 "candidates": [self.candidate(),
+                                self.candidate(title="Second", decision="rejected", written_to=None)]}
         code, result, _ = self.run_cli("log", stdin_text=json.dumps(entry))
         self.assertEqual((code, result["logged"]), (0, 2))
         with open(os.path.join(self.folder, "lessons.md")) as handle:
             markdown = handle.read()
-        self.assertIn("**Failing test first** [rule]: picked, written to `/Users/x/.claude/CLAUDE.md`", markdown)
+        self.assertIn(f"**Failing test first** [rule]: picked, written to `{os.path.realpath(self.user_rules)}`",
+                      markdown)
         self.assertIn("**Second** [rule]: rejected", markdown)
         with open(os.path.join(self.home, "lessons.jsonl")) as handle:
             lines = [json.loads(line) for line in handle]
@@ -142,7 +148,7 @@ class LessonsLogTests(IsolatedHomeTestCase):
         plain = (f"library_dir: {self.folder}\noutcome: written\nreason:\n---\n"
                  "title: Failing test first\ntype: rule\nwhat_changes: Red before green.\n"
                  "timestamp: 00:01:12\nspeaker: SPEAKER_01\nquote: it writes the failing test: first\n"
-                 "versus_setup: new\nconfidence: high\ndecision: picked\nwritten_to: /x/CLAUDE.md\n---\n"
+                 f"versus_setup: new\nconfidence: high\ndecision: picked\nwritten_to: {self.user_rules}\n---\n"
                  "title: Second\ntype: idea\ndecision: rejected\nwritten_to: none\n")
         self.assertNotIn('{"', plain)
         code, result, _ = self.run_cli("log", stdin_text=plain)
@@ -150,20 +156,24 @@ class LessonsLogTests(IsolatedHomeTestCase):
         with open(os.path.join(self.home, "lessons.jsonl")) as handle:
             lines = [json.loads(line) for line in handle]
         self.assertEqual(lines[0]["evidence"]["quote"], "it writes the failing test: first")
-        self.assertEqual((lines[0]["written_to"], lines[1]["written_to"]), ("/x/CLAUDE.md", None))
+        self.assertEqual((lines[0]["written_to"], lines[1]["written_to"]), (os.path.realpath(self.user_rules), None))
 
     def test_plain_format_nothing_worth_adding(self):
         code, result, _ = self.run_cli("log", stdin_text=(
             f"library_dir: {self.folder}\noutcome: nothing_worth_adding\nreason: An ad, no method.\n"))
         self.assertEqual((code, result["logged"]), (0, 0))
-        self.assertEqual(result["files_written"], [os.path.realpath(os.path.join(self.folder, "lessons.md"))])
+        self.assertEqual(result["files_written"], [os.path.realpath(os.path.join(self.folder, "lessons.md")),
+                                                   os.path.join(self.home, "lessons.jsonl")])
 
     def test_nothing_worth_adding_is_logged(self):
         lessons_log.record({"library_dir": self.folder, "outcome": "nothing_worth_adding",
                             "reason": "Only opinions, no methods.", "candidates": []})
         with open(os.path.join(self.folder, "lessons.md")) as handle:
             self.assertIn("nothing worth adding\n\nOnly opinions, no methods.", handle.read())
-        self.assertFalse(os.path.exists(os.path.join(self.home, "lessons.jsonl")))
+        with open(os.path.join(self.home, "lessons.jsonl")) as handle:
+            rows = [json.loads(line) for line in handle]
+        self.assertEqual([(row["outcome"], row["title"], row["reason"]) for row in rows],
+                         [("nothing_worth_adding", None, "Only opinions, no methods.")])
 
     def test_quotes_are_cut_to_25_words(self):
         long_quote = " ".join(f"w{i}" for i in range(40))
@@ -193,7 +203,7 @@ class LessonsLogTests(IsolatedHomeTestCase):
         code, result, _ = self.run_cli("log", stdin_text=plain)
         self.assertEqual((code, result["logged"], result["outcome"]), (0, 1, "dry_run"), result)
         entry = {"library_dir": self.folder, "outcome": "dry_run",
-                 "candidates": [self.candidate(decision="dry_run", written_to="/should/be/dropped")]}
+                 "candidates": [self.candidate(decision="dry_run", written_to=None)]}
         code, result, _ = self.run_cli("log", stdin_text=json.dumps(entry))
         self.assertEqual((code, result["logged"]), (0, 1), result)
         with open(os.path.join(self.home, "lessons.jsonl")) as handle:
@@ -258,7 +268,7 @@ class SkillContractTests(IsolatedHomeTestCase):
         for phrase in ("remove it before building", "Dry run: skip this step",
                        "never do 5", "outcome: dry_run", "decision: picked | rejected | dry_run"):
             self.assertIn(phrase, text)
-        self.assertLess(len(text.splitlines()), 170)
+        self.assertLess(len(text.splitlines()), 180)
 
     def test_fetch_refuses_dry_run_and_writes_nothing(self):
         code, result, _ = self.run_cli("fetch", "Some pasted text.", "--dry-run")
@@ -286,3 +296,26 @@ class SkillContractTests(IsolatedHomeTestCase):
                        "<<'CAST2SKILL_LOG_<random>'", "--episode-id", "Never use double quotes",
                        "the check is a backstop, not a clearance"):
             self.assertIn(phrase, text)
+
+    def test_second_e2e_fixes_are_in_the_skill_text(self):
+        # Independent end-to-end run, 2026-11-25 (progress log): items 3 to 8.
+        text = self.read("SKILL.md")
+        step7 = text.split("## Step 7.")[1].split("## Step 8.")[0]
+        self.assertLess(step7.index("Read [reference/writing.md]"), step7.index("1. State the destination"))
+        self.assertIn("Dry run: read writing.md", step7)
+        for phrase in ("names the source by `title` from the fetch result, never by the lesson's title",
+                       "write exactly what was shown", "show it again and get a new yes",
+                       "never write a draft or temp file anywhere", "Pick a fresh suffix for every heredoc",
+                       "never copy one from an example", "the timestamp goes in the Evidence line",
+                       "log that candidate as picked with `written_to: none`", "Never log it as written"):
+            self.assertIn(phrase, text)
+        self.assertEqual(re.findall(r"CAST2SKILL_[A-Z]+_[A-Za-z0-9]{8}\b", text), [],
+                         "no literal delimiter suffix a model could copy")
+        card_title = text.split("## Step 5.")[1].split("```")[1].strip().splitlines()[0]
+        self.assertNotRegex(card_title, r"\d\d:\d\d|HH:MM")
+
+    def test_provenance_uses_the_source_title(self):
+        writing = self.read("reference", "writing.md")
+        self.assertIn("never the lesson's own title", writing)
+        self.assertNotIn("<Title>", writing)
+        self.assertNotRegex(writing, r"cast2skill: <title>|Source: <title>")

@@ -6,8 +6,11 @@ import os
 import subprocess
 from unittest import mock
 
-from cast2skill_core import doctor, errors, storage, transcriber
+from cast2skill_core import doctor, errors, permission_rule, storage, transcriber
+from tests import ENTRY_SCRIPT
 from tests.support import IsolatedHomeTestCase
+
+CACHED_SCRIPT = "/Users/u/.claude/plugins/cache/cast2skill/cast2skill/0.1.0/skills/learn/scripts/cast2skill.py"
 
 
 def make_fake_transcriber(folder):
@@ -133,6 +136,43 @@ class DoctorTests(IsolatedHomeTestCase):
         self.assertEqual(report["machine"], "Apple Silicon + audio_transcriber")
         self.assertEqual(report["failed"], [])
         self.assertTrue(all(report["capabilities"].values()))
+
+
+class PermissionRuleTests(IsolatedHomeTestCase):
+    """Doctor shows the allow rule and never writes settings (decision 36)."""
+
+    def write_user_settings(self, text):
+        with open(os.path.join(self.claude_config, "settings.json"), "w", encoding="utf-8") as handle:
+            handle.write(text)
+
+    def test_installed_path_gets_a_version_free_rule(self):
+        report = permission_rule.permission_report(CACHED_SCRIPT)
+        self.assertEqual(report["permission_rule"], "Bash(python3 /Users/u/.claude/plugins/cache/cast2skill/"
+                                                    "cast2skill/*/skills/learn/scripts/cast2skill.py *)")
+        self.assertEqual(report["permission_rule_this_version"], f"Bash(python3 {CACHED_SCRIPT} *)")
+
+    def test_a_checkout_gets_its_exact_path(self):
+        report = permission_rule.permission_report("/src/cast2skill/skills/learn/scripts/cast2skill.py")
+        self.assertEqual(report["permission_rule"], report["permission_rule_this_version"])
+        self.assertIsNone(permission_rule.without_version_folder("/x/plugins/cache/cast2skill.py"))
+
+    def test_reports_whether_user_settings_hold_the_rule(self):
+        settings_path = os.path.join(self.claude_config, "settings.json")
+        report = permission_rule.permission_report(CACHED_SCRIPT)
+        self.assertEqual((report["permission_rule_in_settings"], report["user_settings_file"]), (False, settings_path))
+        for rule in (report["permission_rule"], report["permission_rule_this_version"]):
+            with self.subTest(rule=rule):
+                self.write_user_settings(json.dumps({"permissions": {"allow": ["Read", rule]}}))
+                self.assertTrue(permission_rule.permission_report(CACHED_SCRIPT)["permission_rule_in_settings"])
+        self.write_user_settings("{not json")
+        self.assertIsNone(permission_rule.permission_report(CACHED_SCRIPT)["permission_rule_in_settings"])
+
+    def test_doctor_reports_the_running_script_and_writes_no_settings(self):
+        code, result, _ = self.run_cli("doctor", "--transcriber-dir", os.path.join(self.home, "none"))
+        self.assertEqual(code, 0)
+        self.assertEqual(result["permission_rule"], f"Bash(python3 {ENTRY_SCRIPT} *)")
+        self.assertFalse(result["permission_rule_in_settings"])
+        self.assertEqual(os.listdir(self.claude_config), [])
 
 
 class CliContractTests(IsolatedHomeTestCase):

@@ -1,6 +1,7 @@
 """`doctor`: what works on this machine, and one fix per thing that does not.
 
-Reports only. Never installs or changes anything.
+Reports only. Never installs or changes anything, and never edits Claude
+Code settings: the permission rule is shown, not added (permission_rule.py).
 """
 
 import os
@@ -10,7 +11,7 @@ import subprocess
 import sys
 import tempfile
 
-from . import storage, transcriber
+from . import permission_rule, storage, transcriber
 from .errors import CastError
 
 MIN_PYTHON = (3, 10)
@@ -119,7 +120,7 @@ def run_doctor(explicit_dir=None):
 
     by_name = {result["name"]: result for result in results}
     on_apple_with_transcriber = by_name["apple_silicon"]["ok"] and caps is not None
-    return {
+    report = {
         "machine": "Apple Silicon + audio_transcriber" if on_apple_with_transcriber else "Anything else",
         "capabilities": capability_row(by_name, caps),
         "checks": results,
@@ -127,3 +128,5 @@ def run_doctor(explicit_dir=None):
         "home": storage.home_dir(),
         "plugin_scripts": os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     }
+    report.update(permission_rule.permission_report())
+    return report

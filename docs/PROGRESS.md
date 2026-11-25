@@ -6,6 +6,76 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-25: fixes from the independent end-to-end run: `log` checks `written_to`, every run leaves a jsonl row, skill text fixes, permission rule in doctor. ✅ DONE: all nine items built and tested at script level; the new skill wording and the permission rule have not been run in a live session. [unreleased]**
+Scope: fixes from an independent end-to-end run through the real skill
+(evidence in the session scratchpad, `e2e/runs/` and `e2e/home/lessons.jsonl`).
+Key failure: a skill write was blocked by Claude Code's `.claude/`
+protection, yet the model logged `written_to: .../red-green-tdd/SKILL.md`
+(no such file) and then appended a fake "(correction)" candidate.
+1. `log` refuses a `written_to` that does not exist, lies outside the allowed
+   places (user config `skills/` and `CLAUDE.md`, the working directory's
+   `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/skills/`, the notes file), or
+   belongs to a candidate that was not picked; symlinks and `..` resolved on
+   both sides; `$CLAUDE_CONFIG_DIR` honoured; nothing written when any
+   candidate is refused (decision 34).
+2. Every jsonl row stores `outcome`; a run with no candidates writes one
+   run-level row with the candidate fields null (decision 35).
+3 to 8. SKILL.md: read writing.md before drafting (dry run too); provenance
+   uses the fetch result's `title`; write exactly what was shown, re-ask on
+   any change; drafts in chat only; fresh heredoc suffix every time, literal
+   `q7Rk2mXa` example removed; card timestamp in the Evidence line; a failed
+   write is told and logged as picked with `written_to: none`. Safety rule 4
+   now lists the exact files. writing.md uses `<source title>` (decision 37).
+   SKILL.md is 158 lines (was 155).
+9. Doctor reports `permission_rule`, `permission_rule_this_version`,
+   `permission_rule_in_settings` (read-only look at `permissions.allow` in
+   the user settings) and `user_settings_file`; doctor SKILL.md tells the
+   user how to add it and never adds it; README "Fewer permission prompts"
+   section (decision 36). Rule syntax checked against
+   https://code.claude.com/docs/en/permissions.md#wildcard-patterns ("A `*`
+   can go anywhere in the rule"), protected paths against
+   https://code.claude.com/docs/en/permission-modes.md#protected-paths, and
+   the one-turn `allowed-tools` grant against
+   https://code.claude.com/docs/en/skills.md#pre-approve-tools-for-a-skill.
+
+Proof: before, at 4003a1e: `python3 -m unittest discover -b -s tests -t .`
+→ `Ran 112 tests ... OK`; the e2e log entry (picked, `written_to` a missing
+`.claude/skills/red-green-tdd/SKILL.md`) through `log` → exit 0,
+`{"logged": 1, "outcome": "written", ...}`. The new test files run against
+4003a1e in a scratch worktree → `Ran 126 tests`, `FAILED (failures=16,
+errors=9)`. After: the same suite → `Ran 130 tests in 0.903s OK`; the same
+entry → exit 1, `{"error": {"code": "bad_log_entry", "message": "written_to
+<path> does not exist: Red-green TDD with locked tests", "hint": "Log only
+files that were actually written; use written_to: none for a write that
+failed or was declined."}}`, no `lessons.jsonl` created; a
+`nothing_worth_adding` run → one row `{"title": null, ..., "reason": "An ad,
+no method.", "outcome": "nothing_worth_adding", ...}`. Doctor from this
+checkout → `permission_rule` `Bash(python3 ~/Projects/Utilities/cast2skill/skills/learn/scripts/cast2skill.py *)`,
+`permission_rule_in_settings: false`. `claude plugin validate --strict .`
+(Claude Code 2.1.332) → "✔ Validation passed", exit 0, with the known
+ICON_MISSING directory warning. New tests: `tests/test_log_records.py`
+(`WrittenToTests` 9, `OutcomeRowTests` 3), `PermissionRuleTests` (4), two
+SKILL.md/writing.md contract tests; existing log tests now use real files in
+a temp `CLAUDE_CONFIG_DIR`, which every test now gets.
+Not verified: a model following the new SKILL.md lines; whether the
+permission rule approves the heredoc `check`/`log` calls and whether Claude
+Code warns about its middle `*` (an isolated config dir is not logged in;
+ticket filed).
+Files: `skills/learn/SKILL.md`, `skills/learn/reference/writing.md`,
+`skills/doctor/SKILL.md`,
+`cast2skill_core/{written_paths (new),permission_rule (new),lessons_log,doctor}.py`,
+`tests/{test_log_records (new),support,test_learn_safety_and_log,test_setup_commands}.py`,
+`README.md`, `CHANGELOG.md`, `docs/DECISIONS.md`, four new tickets
+(`2026-11-25-log-project-paths-follow-the-working-directory.md`,
+`2026-11-25-log-accepts-outcome-written-when-nothing-was-written.md`,
+`2026-11-25-skill-commands-break-on-paths-with-spaces.md`,
+`2026-11-25-permission-rule-not-checked-in-a-live-session.md`), this file.
+Refs: decisions 34 to 37. Release: canonical 0.1.0 in
+`.claude-plugin/plugin.json`, no tags, no drift; entries since the initial
+build remain unreleased.
+
+---
+
 **2026-11-25: dry-run follow-ups: `--dry-run`, tracking parameters stripped, `check` and `make`, skill comparison, "Left out" line, rubric example. ✅ DONE: all six items built and tested; the new skill wording has not been run end to end by a model yet. [unreleased]**
 Scope: six fixes from the owner's dry run of `/cast2skill:learn` on a Spotify
 episode ("73 - Harness Engineering").
