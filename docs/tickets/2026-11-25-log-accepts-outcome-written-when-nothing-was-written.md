@@ -34,3 +34,15 @@ nothing written" today.
 - OR Option C: keep it, and document that `written` means "the user picked".
 
 No code change made by this ticket. It is an observation on the record.
+
+## Update 2026-11-25: seen in a live run
+
+Owner's live run on the Spotify episode 2dQAQbZoLZquUfsPIN5eTr: picked
+lessons 1 and 2, declined both drafts at the write step. Rows: two
+`decision: picked, written_to: null`, two `rejected`, all with
+`outcome: nothing_picked`. The model said "the script has no value for
+picked, then declined at the draft". So the gap is wider than `written`
+being accepted: the outcome set has no value for picked-but-none-written.
+Option to add: `outcome: none_written` (or derive the outcome in `log` from
+the rows instead of trusting the model).
+

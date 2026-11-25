@@ -1,6 +1,6 @@
 # The doctor's `permission_rule` has not been checked in a logged-in Claude Code session
 
-Status: OPEN · Priority: MEDIUM · Type: verification gap · Cost: one interactive run
+Status: CLOSED (2026-11-25), verified in the owner's live session · Priority: MEDIUM · Type: verification gap · Cost: one interactive run
 
 > Follows decision 36. The rule's syntax is from the docs; its effect is not observed.
 
@@ -43,4 +43,18 @@ plugin-cache path shape, the startup "allows any option at its *" row (2), and
 `fetch` with a single-quoted argument (3). Evidence: session scratchpad
 `e2e2/runs`, files tB1 to tB4.
 
-No code change made by this ticket. It is an observation on the record.
+## Resolution 2026-11-25: verified in a live session
+
+Owner's clean install from the marketplace (plugin 0.1.0, user scope, cache
+folder `~/.claude/plugins/cache/cast2skill/cast2skill/0.1.0/`). The rule with
+the middle `*`, copied from doctor, was added through `/permissions` to user
+settings, and the session restarted.
+1. `check` (two drafts) and `log` ran in turns after the owner answered the
+   picker and the write questions, with no permission prompt ("no prompts or
+   anything"). Before the user's next message the skill's own
+   `allowed-tools` covers these calls, so only these later turns prove the rule.
+2. No startup warning about the rule.
+3. `fetch` always runs in the first turn, where `allowed-tools` already
+   covers it, so a single-quoted fetch argument never depends on the rule.
+
+No code change made by this ticket.

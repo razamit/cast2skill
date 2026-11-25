@@ -6,6 +6,31 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-25: Clean install from the marketplace, run by the owner: doctor, two YouTube/Spotify runs, picker, permission rule. ✅ DONE**
+Scope: release 0.1.0 installed from `razamit/cast2skill` in a fresh live
+session (scratch folder, user scope). No code change.
+Proof (owner's pasted output and answers):
+- `claude plugin marketplace add razamit/cast2skill` and `install
+  cast2skill@cast2skill`: success; `claude plugin list` shows 0.1.0 enabled.
+- Doctor: first "Anything else" (transcriber not in default folders, found by
+  home search, saved after a yes), then "Apple Silicon + audio_transcriber",
+  transcriber_flags 1.1.0, speakers pass; yt-dlp not installed on this Mac.
+- Hebrew YouTube OC0_m6x1nf0 `--dry-run`: captions route, nothing worth adding,
+  one run row logged. Mid-run status line came out in Hebrew (ticket below).
+- Spotify episode 2dQAQbZoLZquUfsPIN5eTr `--dry-run`: resolved to RSS,
+  transcribed locally (52 min, 9,916 words), 4 candidates, `si` token absent
+  from every Source line, "paste the skill files from the description"
+  left out as a stranger's instructions, 3 drafts passed `check`.
+- Same episode without `--dry-run`: transcript reused, multi-select picker
+  shown with 4 options, owner picked 2 and declined both writes; log rows
+  `picked`/`written_to: null` x2, `rejected` x2, outcome `nothing_picked`
+  (ticket updated). No permission prompts for `check` or `log` in the later
+  turns, no startup warning: the rule ticket is closed.
+Tickets: closed `2026-11-25-permission-rule-not-checked-in-a-live-session.md`;
+updated `2026-11-25-log-accepts-outcome-written-when-nothing-was-written.md`;
+filed `2026-11-25-learn-status-line-follows-source-language.md`.
+Files: docs/PROGRESS.md, three tickets.
+
 **2026-11-25: Published: cast2skill on GitHub with v0.1.0, audio_transcriber flag mode on its public main. ✅ DONE: pushed and checked; clean install from the marketplace not yet run.**
 Scope: public repo `razamit/cast2skill` created; `main` and `v0.1.0` pushed.
 Before the first push, history from `77e5514` on was rewritten (filter-branch,
