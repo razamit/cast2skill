@@ -32,4 +32,15 @@ heredoc calls, the prompts it promises to remove remain.
 - Option A: owner adds the rule from `/cast2skill:doctor` in a real session, runs `/cast2skill:learn` on short pasted text, picks a rule, and notes whether `check` and `log` prompt.
 - OR Option B: a headless run with `--settings` and `--output-format stream-json` in a logged-in profile, reading the permission decisions from the stream.
 
+## Update 2026-11-25: headless evidence (partial)
+
+An independent end-to-end test at 77e5514 resumed a headless turn with
+`--settings` holding the middle-`*` rule against the checkout path. The
+heredoc `check` and `log` calls ran with `permission_denials: []`; the control
+turn without the rule was denied. This confirms point (1) in a headless
+session for the checkout path. Still unverified: the real installed
+plugin-cache path shape, the startup "allows any option at its *" row (2), and
+`fetch` with a single-quoted argument (3). Evidence: session scratchpad
+`e2e2/runs`, files tB1 to tB4.
+
 No code change made by this ticket. It is an observation on the record.

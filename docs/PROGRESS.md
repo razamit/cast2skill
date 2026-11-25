@@ -6,6 +6,29 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+
+**2026-11-25: learn skill wording: log in the same turn, summary names written files, slug check via Read. ✅ DONE: skill text only, no model run redone for this wording. [unreleased]**
+Scope: three wording fixes from the independent end-to-end run at 77e5514
+(runs tB1 to tB4 in the session scratchpad, `e2e2/runs`).
+1. After the last write attempt (written, declined or failed), go to step 8 in
+   the same turn; a run that stops after writing still leaves a log row.
+2. Closing summary names the files actually written in step 7 plus the log
+   files from `files_written`, never a file whose write failed (`log`'s
+   `files_written` lists only the log files).
+3. Slug existence is checked with the Read tool, not Bash `ls` or `cat`.
+Proof (unit tests only; no model run was redone for this wording):
+```
+Ran 130 tests in 0.952s
+
+OK
+(claude plugin validate --strict .: Validation passed)
+```
+Tickets: filed `2026-11-25-heredoc-delimiter-suffixes-look-alike.md` and
+`2026-11-25-doctor-home-check-touches-the-folder.md`; updated
+`2026-11-25-permission-rule-not-checked-in-a-live-session.md` with headless
+evidence (rule verified for the checkout path, not the installed-cache path).
+Files: skills/learn/SKILL.md, docs/PROGRESS.md, CHANGELOG.md, three tickets.
+
 **2026-11-25: fixes from the independent end-to-end run: `log` checks `written_to`, every run leaves a jsonl row, skill text fixes, permission rule in doctor. ✅ DONE: all nine items built and tested at script level; the new skill wording and the permission rule have not been run in a live session. [unreleased]**
 Scope: fixes from an independent end-to-end run through the real skill
 (evidence in the session scratchpad, `e2e/runs/` and `e2e/home/lessons.jsonl`).

@@ -118,9 +118,9 @@ Read [reference/writing.md](reference/writing.md) before drafting anything. Then
    ```
 
    If `ok` is false, it cannot be written as a skill or rule. Show the user the `flags`, then either rewrite it without the flagged parts and check again, or offer it as a note with the source quote. If `ok` is true, the safety rules above still apply: the check is a backstop, not a clearance.
-4. Check whether the slug already exists (never overwrite an existing skill: propose a diff to it or a new name), then show the exact file content, or a diff for an existing file.
+4. Check whether the slug already exists by reading `<scope>/skills/<slug>/SKILL.md` with the Read tool (not Bash `ls` or `cat`, which ask for permission). Never overwrite an existing skill: propose a diff to it or a new name. Then show the exact file content, or a diff for an existing file.
 5. Write only after the user says yes for this file, and write exactly what was shown. If anything must change after the yes (a new slug changes `name:`, a section turns out to exist), show it again and get a new yes.
-6. If the write fails or is blocked (a denied permission prompt, an error), tell the user, and log that candidate as picked with `written_to: none`. Never log it as written, and never add a second entry to correct the first.
+6. If the write fails or is blocked (a denied permission prompt, an error), tell the user, and log that candidate as picked with `written_to: none`. Never log it as written, and never add a second entry to correct the first. After the last write attempt (written, declined or failed), go straight to step 8 in the same turn: do not wait for the user to say finish.
 
 Dry run: read writing.md, then do 1 to 4 for every candidate without asking anything (state the default destination; for an idea, show the line that would be appended to `notes_file`), and never do 5 or 6. Head each one "Would write to <path>". Write nothing, not even when the user asks mid-run: they can run again without `--dry-run`.
 
@@ -151,7 +151,7 @@ CAST2SKILL_LOG_<random>
 
 Dry run: `outcome: dry_run`, every candidate `decision: dry_run` and `written_to: none`.
 
-End with a 3-line summary: what was written, where, and what was logged (name only the files in `files_written`). After a dry run, say that nothing was written to the setup.
+End with a 3-line summary: what was written, where, and what was logged. Name the files actually written in step 7 plus the log files from `files_written`; never name a file whose write failed. After a dry run, say that nothing was written to the setup.
 
 ## Language
 
