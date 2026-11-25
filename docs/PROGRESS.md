@@ -7,6 +7,26 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 ---
 
 
+**2026-11-25: README says lesson quality depends on the session model; case 2 (captionless Hebrew YouTube) passes. ✅ DONE [unreleased]**
+Scope: owner chose option B (decision 38): the skill does not set a model;
+README "How lessons are chosen" says a stronger model gives better candidates
+and suggests `/model`. Its "Specific" example now matches the rubric (no
+longer test-first).
+Proof, manual case 2 through the real skill, headless, `--dry-run`, Haiku 5.5
+(the session default), scratch home and project:
+```
+video F0wjoK584JU (Hebrew, 2291 s): manual subtitles: none, auto: iw, iw-orig
+fetch: transcript_source local_whisper, words 6366, warnings []
+whole run 358 s, cost $0.023, 2 candidates (1 rule, 1 idea), Left out line,
+nothing written to the setup, both candidates logged as dry_run
+```
+Earlier the same day a captioned video (OC0_m6x1nf0, finance) took the
+manual-captions route in 20 s and gave a correct "nothing worth adding".
+Ticket filed: `2026-11-25-learn-setup-reads-and-check-rewording.md` (step 3
+tried Bash reads of ~/.claude and was denied; a flagged draft passed `check`
+after a one-word synonym swap).
+Files: README.md, docs/DECISIONS.md, docs/PROGRESS.md, CHANGELOG.md, one ticket.
+
 **2026-11-25: learn skill wording: log in the same turn, summary names written files, slug check via Read. ✅ DONE: skill text only, no model run redone for this wording. [unreleased]**
 Scope: three wording fixes from the independent end-to-end run at 77e5514
 (runs tB1 to tB4 in the session scratchpad, `e2e2/runs`).

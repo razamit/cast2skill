@@ -16,6 +16,7 @@ of the progress entry that holds the proof, so `grep '\[X.Y.Z\]'` across
 - `/cast2skill:doctor` shows the one permission rule that stops the learn skill's script calls from asking again after you pick lessons, and whether your settings already have it; README has a "Fewer permission prompts" section. Doctor never edits your settings (2026-11-25)
 
 ### Changed
+- README notes that the learn skill uses your session's model and that a stronger model gives better lessons (2026-11-25)
 - `/cast2skill:learn` logs right after the last write attempt instead of waiting for you, names only files it actually wrote in the closing summary, and checks for an existing skill with its Read tool so no extra permission prompt appears (2026-11-25)
 - Lessons are compared with every skill in your context (user, project, plugin and built-in), not only user and project skills (2026-11-25)
 - The rubric's example of a specific lesson is no longer about test-first, so it no longer suggests that lesson (2026-11-25)

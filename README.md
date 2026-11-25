@@ -144,8 +144,8 @@ an interactive session.
 Every candidate must be:
 
 1. **Actionable in Claude Code**: it changes what you or the agent do.
-2. **Specific**: "write tests first" fails; "have the agent write the failing
-   test, show it failing, then implement" passes.
+2. **Specific**: "write readable code" fails; "have the agent name each new
+   function after the value it returns, not the steps inside it" passes.
 3. **Grounded**: a timestamp and a quote of 25 words or fewer.
 4. **New for you**: checked against your CLAUDE.md files and your skill list.
    Already covered means dropped, or marked "extends".
@@ -155,6 +155,12 @@ At most five candidates, one strong one preferred over five weak ones. When
 the source contradicts your setup you are told, and you decide. Lessons you
 rejected before are not proposed again unless the new source adds something.
 Zero candidates is a valid result.
+
+The skill runs on whatever model your session uses; cast2skill does not pick
+one for you. Picking lessons, quoting the source and keeping timestamps
+right is careful reading, so a stronger model (Sonnet or Opus) gives better
+candidates than a small fast one. If your default is a small model, switch
+with `/model` before running `/cast2skill:learn`.
 
 Each lesson becomes one of:
 
