@@ -7,7 +7,7 @@ Status: OPEN · Priority: LOW · Type: side effect in a read-only check · Cost:
 `doctor` tests whether the cast2skill home is writable by creating and then
 deleting a temp file there. That changes the folder's modification time even
 though doctor is meant to be a read-only check. Seen in the independent
-end-to-end run at 77e5514.
+end-to-end run at b93cbb9.
 
 ## Evidence
 

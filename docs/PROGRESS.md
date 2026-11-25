@@ -85,7 +85,7 @@ after a one-word synonym swap).
 Files: README.md, docs/DECISIONS.md, docs/PROGRESS.md, CHANGELOG.md, one ticket.
 
 **2026-11-25: learn skill wording: log in the same turn, summary names written files, slug check via Read. ✅ DONE: skill text only, no model run redone for this wording. [0.1.0]**
-Scope: three wording fixes from the independent end-to-end run at 77e5514
+Scope: three wording fixes from the independent end-to-end run at b93cbb9
 (runs tB1 to tB4 in the session scratchpad, `e2e2/runs`).
 1. After the last write attempt (written, declined or failed), go to step 8 in
    the same turn; a run that stops after writing still leaves a log row.

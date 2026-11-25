@@ -34,7 +34,7 @@ heredoc calls, the prompts it promises to remove remain.
 
 ## Update 2026-11-25: headless evidence (partial)
 
-An independent end-to-end test at 77e5514 resumed a headless turn with
+An independent end-to-end test at b93cbb9 resumed a headless turn with
 `--settings` holding the middle-`*` rule against the checkout path. The
 heredoc `check` and `log` calls ran with `permission_denials: []`; the control
 turn without the rule was denied. This confirms point (1) in a headless

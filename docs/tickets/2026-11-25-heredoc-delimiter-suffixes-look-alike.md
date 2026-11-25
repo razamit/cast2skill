@@ -4,7 +4,7 @@ Status: OPEN · Priority: LOW · Type: robustness · Cost: none
 
 ## Symptom
 
-In the independent end-to-end run at 77e5514 the model picked fresh suffixes
+In the independent end-to-end run at b93cbb9 the model picked fresh suffixes
 for each heredoc, but they resembled each other: k7Qx2mPd, k7Qm2Lxa,
 k7Qm2xRz (runs tB1 to tB4 in the session scratchpad, `e2e2/runs`).
 
