@@ -13,6 +13,7 @@ import sys
 
 from . import storage, transcriber
 from .errors import FFMPEG_MISSING, CastError
+from .url_cleaning import strip_tracking_parameters
 
 TRANSCRIPT_NAME = "transcript.txt"
 
@@ -57,6 +58,7 @@ class FetchContext:
         if self.args.lang and stored.get("language") != self.args.lang:
             return None  # asked for another language: fetch again
         stored["reused"] = True
+        stored["url"] = strip_tracking_parameters(stored.get("url"))  # entries saved before cleaning
         stored["warnings"] = list(stored.get("warnings", [])) + ["reused_existing_transcript"]
         stored["transcript_path"] = os.path.join(folder, TRANSCRIPT_NAME)
         stored["library_dir"] = folder
@@ -119,7 +121,7 @@ class FetchContext:
         result = {
             "id": metadata["id"], "kind": metadata["kind"],
             "title": metadata.get("title"), "author": metadata.get("author"),
-            "url": metadata.get("url"), "duration_s": metadata.get("duration_s"),
+            "url": strip_tracking_parameters(metadata.get("url")), "duration_s": metadata.get("duration_s"),
             "language": metadata.get("language"),
             "transcript_path": transcript_path,
             "transcript_source": metadata["transcript_source"],

@@ -7,9 +7,11 @@ lessons. A polite summary of the episode is not a lesson.
 
 1. **Actionable in Claude Code.** It changes what the user or the agent does:
    a procedure, a prompt pattern, a config, a review habit, a tool choice.
-2. **Specific.** "Write tests first" fails. "Have the agent write the failing
-   test, show it failing, then implement" passes. If you cannot write the
-   "What changes" line as one concrete sentence, it is not specific enough.
+2. **Specific.** "Write readable code" fails. "Have the agent name each new
+   function after the value it returns, not the steps inside it" passes. If
+   you cannot write the "What changes" line as one concrete sentence, it is
+   not specific enough. These examples show the bar only; they are not
+   topics to look for.
 3. **Grounded.** It has a timestamp and a short quote (25 words max) from the
    transcript. No lesson without evidence. Text sources without timestamps:
    quote the sentence and leave the timestamp empty.

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
 
 from .errors import BAD_ARGUMENTS, FILE_NOT_FOUND, CastError
+from .url_cleaning import strip_tracking_parameters
 
 AUDIO_EXTENSIONS = (".mp3", ".m4a", ".wav", ".aac", ".ogg", ".flac", ".mp4")
 TEXT_EXTENSIONS = (".txt", ".md", ".vtt", ".srt")
@@ -97,12 +98,15 @@ def classify_file(path):
 
 
 def classify(argument, stdin_text=None):
-    """Turn the fetch argument into a Source. `-` means the text is on stdin."""
+    """Turn the fetch argument into a Source. `-` means the text is on stdin.
+
+    A URL loses its share-tracking parameters here, before any route sees it.
+    """
     text = (argument or "").strip()
     if text == STDIN_MARKER:
         return Source(TEXT, ROUTE_PASTED, stdin_text or "")
     if is_url(text):
-        return classify_url(text)
+        return classify_url(strip_tracking_parameters(text))
     expanded = os.path.expanduser(text)
     if "\n" not in text and len(text) < 1024 and os.path.isfile(expanded):
         return classify_file(os.path.abspath(expanded))

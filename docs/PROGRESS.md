@@ -6,6 +6,59 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-25: dry-run follow-ups: `--dry-run`, tracking parameters stripped, `check` and `make`, skill comparison, "Left out" line, rubric example. ✅ DONE: all six items built and tested; the new skill wording has not been run end to end by a model yet. [unreleased]**
+Scope: six fixes from the owner's dry run of `/cast2skill:learn` on a Spotify
+episode ("73 - Harness Engineering").
+1. Share-tracking parameters (`si`, `feature`, `utm_*`, `fbclid`, `gclid`,
+   `igshid`, `igsh`) are stripped in `classify` before any route runs, and
+   again in `save_result`, reuse and `log` for entries saved earlier
+   (decision 31). Apple `i`, YouTube `v`/`t`/`list` and other parameters stay.
+2. `check` flags `make` and `eval` only in a command shape; `exec` and `nc`
+   stay bare (decision 32). Ticket `2026-11-25-check-flags-the-word-make.md`
+   closed.
+3. Step 3 compares candidates with every skill listed in context (user,
+   project, plugin, built-in), still without opening skill bodies.
+4. Step 5 ends with one "Left out:" line (dropped candidates, a few words
+   each). Display only, not logged: the log has no cheap place for candidates
+   that were never shown as cards.
+5. Rubric and writing.md examples moved from test-first to naming functions
+   (decision 33).
+6. `--dry-run` (owner approved Option A, decision 30): SKILL.md argument-hint,
+   a short intro paragraph and one "Dry run" line in steps 5 to 8; the skill
+   strips the flag before `fetch`, and `fetch` rejects it with a hint naming
+   `/cast2skill:learn`. `log` accepts `dry_run` as outcome and decision (JSON
+   and plain formats); the two never mix with picked/rejected. README
+   paragraph added. SKILL.md is 155 lines (was 142).
+
+Proof: before, at b49a38c in a scratch worktree:
+`python3 -m unittest discover -b -s tests -t .` → `Ran 97 tests ... OK`, and
+`printf -- '- Make sure the agent shows its work.\n' | python3 skills/learn/scripts/cast2skill.py check`
+→ `{"ok": false, "flags": [{"rule": "shell_command", "match": "Make"}], ...}`.
+After: the same suite → `Ran 112 tests in 1.214s OK`; the same `check` →
+`{"ok": true, "flags": [], "verdict": "no flags; the safety rules still apply"}`;
+`fetch 'hello there' --dry-run` → exit 2, `bad_arguments` with the
+`/cast2skill:learn` hint, no library folder created;
+`claude plugin validate --strict .` (Claude Code 2.1.332) → "✔ Validation
+passed", exit 0, with one plugin directory warning (ICON_MISSING), filed as a
+ticket. New tests: `TrackingParameterTests` (3), Spotify token never stored
+and reuse with/without it, audio URL reuse with/without `utm_source`, old
+entry reused with a clean URL, everyday `make`/`eval` pass, command-shape
+`make`/`eval`/`exec`/`nc` flagged, `dry_run` log in both formats, no mixing,
+`log` cleans an old `source_url`, fetch refuses `--dry-run`, SKILL.md dry-run
+contract, setup comparison and "Left out", rubric example not about testing.
+Not verified: a model following the new dry-run lines interactively or
+headless; known `check` gap "make test and restart" passes (decision 32).
+Files: `skills/learn/SKILL.md`, `skills/learn/reference/{rubric,writing}.md`,
+`skills/learn/scripts/cast2skill.py`,
+`cast2skill_core/{url_cleaning (new),classify,fetch_context,lessons_log,lesson_check}.py`,
+`tests/{test_classify_language_subtitles,test_podcasts,test_learn_safety_and_log}.py`,
+`README.md`, `CHANGELOG.md`, `docs/DECISIONS.md`,
+`docs/tickets/2026-11-25-check-flags-the-word-make.md` (closed),
+`docs/tickets/2026-11-25-plugin-has-no-directory-icon.md` (new), this file.
+Refs: decisions 30 to 33.
+
+---
+
 **2026-11-11: M6, README, LICENSE, marketplace file, local install test, independent review and fixes. 🟡 PARTIAL: everything built and committed; waiting at GATE B for the owner's manual table. [unreleased]**
 Scope: `README.md` (SPEC.md §14 order, injection fixture's expected behavior),
 `LICENSE` (MIT, was missing from M2), `.claude-plugin/marketplace.json`

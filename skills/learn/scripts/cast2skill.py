@@ -40,10 +40,16 @@ from cast2skill_core import commands  # noqa: E402  (after the version guard on 
 from cast2skill_core.errors import BAD_ARGUMENTS, UNEXPECTED, CastError  # noqa: E402
 
 
+DRY_RUN_HINT = ("--dry-run belongs to /cast2skill:learn, not to this script. "
+                "Run the same command without it; fetch only writes inside the cast2skill home.")
+
+
 class JsonArgumentParser(argparse.ArgumentParser):
     """Usage errors become a bad_arguments error object, not argparse's text."""
 
     def error(self, message):
+        if "--dry-run" in message:  # a learn-skill flag; the script itself never takes it
+            raise CastError(BAD_ARGUMENTS, message, DRY_RUN_HINT)
         raise CastError(BAD_ARGUMENTS, message, f"Run `{self.prog} --help` for usage.")
 
 

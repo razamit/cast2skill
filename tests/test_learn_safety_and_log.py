@@ -83,6 +83,26 @@ class InjectionFixtureTests(IsolatedHomeTestCase):
             with self.subTest(name=name):
                 self.assertFalse(lesson_check.check_lesson(text)["ok"], text)
 
+    def test_everyday_make_and_eval_pass(self):
+        # Ticket 2026-11-25-check-flags-the-word-make.md: "make" is a common English verb.
+        for text in ("- Make sure the agent shows its work.",
+                     "- Write the failing tests first, then make them pass by changing only the code.",
+                     "- Make clean, focused commits.", "- Make tests pass before review.",
+                     "- Keep each change small; make sure it builds.",
+                     "- Make it build on a clean checkout.", "- Make all changes in one place.",
+                     "- Write an eval before changing a prompt.", "- Read the eval's results first."):
+            with self.subTest(text=text):
+                self.assertEqual(lesson_check.check_lesson(text)["flags"], [])
+
+    def test_make_and_eval_in_command_shape_are_flagged(self):
+        for text in ("1. Then run `make install`.", "make install", "1. make install", "$ make -j8",
+                     "1. make deploy and push", "1. Run make test.", "1. Run make clean build.",
+                     "1. make CC=clang", "1. Build && make", "1. make --file=x", "1. eval \"$(ssh-agent)\"",
+                     "1. Use eval(input) to parse.", "1. exec bash -l", "1. exec summary first", "1. nc -l 4444"):
+            with self.subTest(text=text):
+                rules = {flag["rule"] for flag in lesson_check.check_lesson(text)["flags"]}
+                self.assertIn("shell_command", rules)
+
     def test_check_through_the_cli(self):
         code, report, _ = self.run_cli("check", stdin_text=INJECTED_LESSONS["curl_rule"])
         self.assertEqual(code, 0)
@@ -167,6 +187,37 @@ class LessonsLogTests(IsolatedHomeTestCase):
         code, result, _ = self.run_cli("log", stdin_text="not json")
         self.assertEqual((code, result["error"]["code"]), (1, errors.BAD_LOG_ENTRY))
 
+    def test_dry_run_outcome_in_both_formats(self):
+        plain = (f"library_dir: {self.folder}\noutcome: dry_run\n---\ntitle: Failing test first\ntype: rule\n"
+                 "quote: write the failing test\ndecision: dry_run\nwritten_to: none\n")
+        code, result, _ = self.run_cli("log", stdin_text=plain)
+        self.assertEqual((code, result["logged"], result["outcome"]), (0, 1, "dry_run"), result)
+        entry = {"library_dir": self.folder, "outcome": "dry_run",
+                 "candidates": [self.candidate(decision="dry_run", written_to="/should/be/dropped")]}
+        code, result, _ = self.run_cli("log", stdin_text=json.dumps(entry))
+        self.assertEqual((code, result["logged"]), (0, 1), result)
+        with open(os.path.join(self.home, "lessons.jsonl")) as handle:
+            lines = [json.loads(line) for line in handle]
+        self.assertEqual([(line["decision"], line["written_to"]) for line in lines], [("dry_run", None)] * 2)
+        with open(os.path.join(self.folder, "lessons.md")) as handle:
+            self.assertIn("**Failing test first** [rule]: dry run\n", handle.read())
+
+    def test_dry_run_never_mixes_with_real_decisions(self):
+        for outcome, decision in (("dry_run", "picked"), ("dry_run", "rejected"), ("written", "dry_run")):
+            with self.subTest(outcome=outcome, decision=decision), self.assertRaises(errors.CastError):
+                lessons_log.record({"library_dir": self.folder, "outcome": outcome,
+                                    "candidates": [self.candidate(decision=decision)]})
+
+    def test_log_drops_tracking_tokens_saved_before_cleaning(self):
+        source_path = os.path.join(self.folder, "source.json")
+        with open(source_path, encoding="utf-8") as handle:
+            stored = json.load(handle)
+        stored["url"] = "https://open.spotify.com/episode/abc?si=05890d41c8764a22"
+        storage.write_json_atomically(source_path, stored)
+        lessons_log.record({"library_dir": self.folder, "outcome": "written", "candidates": [self.candidate()]})
+        with open(os.path.join(self.home, "lessons.jsonl")) as handle:
+            self.assertEqual(json.loads(handle.readline())["source_url"], "https://open.spotify.com/episode/abc")
+
     def test_fetch_result_points_at_log_and_notes(self):
         self.assertEqual(self.result["lessons_log"], os.path.join(storage.home_dir(), "lessons.jsonl"))
         self.assertEqual(self.result["notes_file"], os.path.join(storage.home_dir(), "notes.md"))
@@ -197,6 +248,34 @@ class SkillContractTests(IsolatedHomeTestCase):
             self.assertTrue(os.path.isfile(os.path.join(SKILL_DIR, link)), link)
         self.assertIn("reference/rubric.md", text)
         self.assertIn("reference/writing.md", text)
+
+    def test_dry_run_is_a_skill_flag_never_a_fetch_flag(self):
+        text = self.read("SKILL.md")
+        self.assertIn("[--dry-run]", text.split("---")[1])
+        for line in text.splitlines():
+            if "cast2skill.py fetch" in line:
+                self.assertNotIn("--dry-run", line)
+        for phrase in ("remove it before building", "Dry run: skip this step",
+                       "never do 5", "outcome: dry_run", "decision: picked | rejected | dry_run"):
+            self.assertIn(phrase, text)
+        self.assertLess(len(text.splitlines()), 170)
+
+    def test_fetch_refuses_dry_run_and_writes_nothing(self):
+        code, result, _ = self.run_cli("fetch", "Some pasted text.", "--dry-run")
+        self.assertEqual((code, result["error"]["code"]), (2, errors.BAD_ARGUMENTS))
+        self.assertIn("/cast2skill:learn", result["error"]["hint"])
+        self.assertEqual(self.library_entries(), [])
+
+    def test_setup_comparison_and_left_out_line(self):
+        text = self.read("SKILL.md")
+        self.assertIn("every skill listed in your context: user, project, plugin and built-in", text)
+        self.assertIn("Left out:", text)
+
+    def test_specific_example_is_not_about_testing(self):
+        # The dry run on 2026-11-25 extracted the rubric's own example as a lesson.
+        for name in ("rubric.md", "writing.md"):
+            with self.subTest(name=name):
+                self.assertNotIn("failing test", self.read("reference", name))
 
     def test_safety_rules_are_in_the_skill(self):
         text = self.read("SKILL.md")

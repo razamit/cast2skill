@@ -37,7 +37,7 @@ One imperative sentence, under `## Learned` in the chosen `CLAUDE.md`
 ```markdown
 ## Learned
 
-- Have the agent write the failing test and show it failing before implementing. <!-- cast2skill: <title>, <url>, <YYYY-MM-DD> -->
+- Name each new function after the value it returns, not the steps inside it. <!-- cast2skill: <title>, <url>, <YYYY-MM-DD> -->
 ```
 
 Show the change as a diff of that file.

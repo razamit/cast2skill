@@ -4,12 +4,16 @@ Input on stdin is either the plain `key: value` format the skill uses (see
 parse_plain_entry) or one JSON object with the same fields:
 
     {"library_dir": ".../library/2026-11-11-some-talk",
-     "outcome": "written" | "nothing_picked" | "nothing_worth_adding",
+     "outcome": "written" | "nothing_picked" | "nothing_worth_adding" | "dry_run",
      "reason": "one sentence, used when nothing was worth adding",
      "candidates": [{"title", "type": "procedure|rule|idea", "what_changes",
                      "evidence": {"timestamp", "speaker", "quote"},
                      "versus_setup", "confidence",
-                     "decision": "picked|rejected", "written_to": path or null}]}
+                     "decision": "picked|rejected|dry_run", "written_to": path or null}]}
+
+A dry run (`/cast2skill:learn <source> --dry-run`) writes nothing to the
+setup, so its outcome and every candidate's decision are `dry_run`, and
+`written_to` is always null. The two never mix with the other values.
 
 Two files are appended, both inside the cast2skill home only:
 `<library_dir>/lessons.md` (readable) and `lessons.jsonl` (one line per
@@ -23,10 +27,12 @@ import os
 
 from . import storage
 from .errors import BAD_LOG_ENTRY, CastError
+from .url_cleaning import strip_tracking_parameters
 
 TYPES = ("procedure", "rule", "idea")
-DECISIONS = ("picked", "rejected")
-OUTCOMES = ("written", "nothing_picked", "nothing_worth_adding")
+DRY_RUN = "dry_run"
+DECISIONS = ("picked", "rejected", DRY_RUN)
+OUTCOMES = ("written", "nothing_picked", "nothing_worth_adding", DRY_RUN)
 MAX_QUOTE_WORDS = 25
 
 
@@ -54,7 +60,7 @@ def checked_candidate(raw):
     if raw.get("type") not in TYPES:
         fail(f"Candidate type must be one of {', '.join(TYPES)}: {raw.get('title')}")
     if raw.get("decision") not in DECISIONS:
-        fail(f"Candidate decision must be picked or rejected: {raw.get('title')}")
+        fail(f"Candidate decision must be one of {', '.join(DECISIONS)}: {raw.get('title')}")
     evidence = raw.get("evidence") or {}
     return {
         "title": str(raw["title"]), "type": raw["type"], "decision": raw["decision"],
@@ -68,6 +74,13 @@ def checked_candidate(raw):
     }
 
 
+def check_dry_run_consistency(outcome, candidates):
+    """A dry run's candidates are all dry_run, and dry_run appears only in a dry run."""
+    for item in candidates:
+        if (outcome == DRY_RUN) != (item["decision"] == DRY_RUN):
+            fail(f"outcome dry_run and decision dry_run go together: {item['title']}")
+
+
 def markdown_section(stamp, outcome, reason, candidates):
     lines = [f"## {stamp}: {outcome.replace('_', ' ')}", ""]
     if reason:
@@ -75,7 +88,7 @@ def markdown_section(stamp, outcome, reason, candidates):
     for number, item in enumerate(candidates, 1):
         where = f", written to `{item['written_to']}`" if item["written_to"] else ""
         evidence = item["evidence"]
-        lines += [f"{number}. **{item['title']}** [{item['type']}]: {item['decision']}{where}",
+        lines += [f"{number}. **{item['title']}** [{item['type']}]: {item['decision'].replace('_', ' ')}{where}",
                   f"   - What changes: {item['what_changes']}",
                   f"   - Evidence: [{evidence['timestamp']}] {evidence['speaker']} \"{evidence['quote']}\"",
                   f"   - Versus setup: {item['versus_setup']}. Confidence: {item['confidence']}"]
@@ -95,13 +108,14 @@ def record(entry, now=None):
     if outcome not in OUTCOMES:
         fail(f"outcome must be one of {', '.join(OUTCOMES)}.")
     candidates = [checked_candidate(raw) for raw in entry.get("candidates") or []]
+    check_dry_run_consistency(outcome, candidates)
     source = storage.read_source_json(folder) or {}
     stamp = (now or datetime.datetime.now()).isoformat(timespec="seconds")
 
     append(os.path.join(folder, "lessons.md"),
            markdown_section(stamp, outcome, str(entry.get("reason") or ""), candidates))
     lines = [json.dumps(dict(item, date=stamp, source_id=source.get("id"), source_title=source.get("title"),
-                             source_url=source.get("url")), ensure_ascii=False) for item in candidates]
+                             source_url=strip_tracking_parameters(source.get("url"))), ensure_ascii=False) for item in candidates]
     if lines:
         append(os.path.join(storage.home_dir(), "lessons.jsonl"), "\n".join(lines) + "\n")
     written = [os.path.join(folder, "lessons.md")]

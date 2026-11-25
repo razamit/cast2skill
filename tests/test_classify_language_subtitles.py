@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from cast2skill_core import classify, errors, language, subtitles
+from cast2skill_core import classify, errors, language, subtitles, url_cleaning
 from tests.support import fixture_path, read_fixture
 
 
@@ -66,6 +66,41 @@ class ClassifierTests(unittest.TestCase):
                     "https://youtube.com/live/arj7oStGLkU", "https://www.youtube.com/embed/arj7oStGLkU"):
             self.assertEqual(classify.youtube_video_id(url), "arj7oStGLkU", url)
         self.assertIsNone(classify.youtube_video_id("https://www.youtube.com/@channel"))
+
+
+class TrackingParameterTests(unittest.TestCase):
+    ROWS = [
+        ("https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk?si=05890d41c8764a22",
+         "https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk"),
+        ("https://youtu.be/arj7oStGLkU?si=AbCdEf123", "https://youtu.be/arj7oStGLkU"),
+        ("https://youtu.be/arj7oStGLkU?si=AbCdEf123&t=42", "https://youtu.be/arj7oStGLkU?t=42"),
+        ("https://www.youtube.com/watch?v=arj7oStGLkU&feature=share",
+         "https://www.youtube.com/watch?v=arj7oStGLkU"),
+        ("https://www.youtube.com/watch?feature=youtu.be&v=arj7oStGLkU&list=PL1&t=90s",
+         "https://www.youtube.com/watch?v=arj7oStGLkU&list=PL1&t=90s"),
+        ("https://podcasts.apple.com/us/podcast/ep-1/id123?i=456&uo=4", "https://podcasts.apple.com/us/podcast/ep-1/id123?i=456&uo=4"),
+        ("https://podcasts.apple.com/us/podcast/ep-1/id123?i=456&utm_source=x&UTM_Medium=y",
+         "https://podcasts.apple.com/us/podcast/ep-1/id123?i=456"),
+        ("https://cdn.example.com/ep.mp3?token=1&fbclid=a&gclid=b&igshid=c&igsh=d", "https://cdn.example.com/ep.mp3?token=1"),
+        ("https://feeds.example.com/show.xml", "https://feeds.example.com/show.xml"),
+        ("https://example.com/a?utm_source=x#frag", "https://example.com/a#frag"),
+    ]
+
+    def test_tracking_parameters_are_removed_and_the_rest_kept(self):
+        for url, expected in self.ROWS:
+            with self.subTest(url=url):
+                self.assertEqual(url_cleaning.strip_tracking_parameters(url), expected)
+
+    def test_classify_hands_routes_the_clean_url(self):
+        for url, expected in self.ROWS:
+            with self.subTest(url=url):
+                self.assertEqual(classify.classify(url).value, expected)
+        clean = classify.classify("https://youtu.be/arj7oStGLkU?si=AbCdEf123").value
+        self.assertEqual(classify.youtube_video_id(clean), "arj7oStGLkU")
+
+    def test_non_urls_pass_through(self):
+        for value in (None, "", "plain text", "https://example.com/no-query"):
+            self.assertEqual(url_cleaning.strip_tracking_parameters(value), value)
 
 
 class LanguageTests(unittest.TestCase):

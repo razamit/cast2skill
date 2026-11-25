@@ -65,6 +65,7 @@ audio_transcriber, give it the folder when it asks and it saves the path to
 /cast2skill:learn ~/Downloads/interview.m4a --lang he --speakers
 /cast2skill:learn ~/notes/talk-transcript.txt
 /cast2skill:learn Paste the text of a tweet or a post here.
+/cast2skill:learn https://youtu.be/VIDEO_ID --dry-run         # shows everything, writes nothing to your setup
 ```
 
 - `--lang he|en`: transcript language. Usually detected from the source; you
@@ -75,6 +76,16 @@ audio_transcriber, give it the folder when it asks and it saves the path to
 - `--episode`: which episode of a feed, by title. Without it you get the
   recent list to pick from. A Spotify or Apple link must match an episode title
   exactly; a near miss (say episode 43 versus 42) is shown to you, never picked.
+
+- `--dry-run`: runs the whole flow and shows every candidate drafted as it
+  would be written: the destination path and the exact content or diff, after
+  the same safety check. You are not asked to pick, and nothing is written to
+  your skills, CLAUDE.md files or notes. The transcript is still kept in the
+  library, and the run is logged with the outcome `dry_run`.
+
+Share links lose their tracking parameters (`si`, `feature`, `utm_*`,
+`fbclid`, `gclid`, `igshid`, `igsh`) before anything is saved, so the token
+that names who shared a link never reaches your library, logs or Source lines.
 
 For YouTube, human captions in the video's language are used first. Without
 them the audio is transcribed locally, and only when that is not possible are

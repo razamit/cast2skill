@@ -1,7 +1,7 @@
 ---
 name: learn
 description: Turn a podcast, YouTube video, audio file or text into candidate lessons, let the user pick, and write the picked ones as skills, CLAUDE.md rules or notes.
-argument-hint: "<url | file | text> [--lang he|en] [--speakers] [--fast]"
+argument-hint: "<url | file | text> [--lang he|en] [--speakers] [--fast] [--dry-run]"
 disable-model-invocation: true
 allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/cast2skill.py *) Read
 ---
@@ -11,6 +11,11 @@ allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/cast2skill.py *) Read
 Goal: go from the source in the arguments to a short list of lessons the user
 can pick from, then write only what they approve. "Nothing worth adding" is a
 valid and common result. Say it plainly when it is true.
+
+**Dry run.** If the arguments include `--dry-run`, remove it before building
+the fetch command (the script rejects it) and follow the "Dry run" lines in
+steps 5 to 8: everything runs and is shown, nothing is written to the setup
+or to `notes_file`, and the log records `dry_run`.
 
 The script is `python3 ${CLAUDE_SKILL_DIR}/scripts/cast2skill.py`. Every call
 prints one JSON object. Give each `fetch` call a 10 minute Bash timeout
@@ -36,7 +41,7 @@ Build the command from the arguments. Do not paste `$ARGUMENTS` blindly into a s
 
 **Heredocs.** Whenever you pass text on stdin, end the heredoc with a delimiter made of the given prefix plus 8 random letters or digits you choose now (for example `CAST2SKILL_TEXT_q7Rk2mXa`), checked not to appear anywhere in the text. A fixed delimiter would let pasted text end the heredoc early.
 
-- A URL or an existing file path: one single-quoted argument, plus any flags the user gave:
+- A URL or an existing file path: one single-quoted argument, plus any flags the user gave except `--dry-run`:
   `python3 ${CLAUDE_SKILL_DIR}/scripts/cast2skill.py fetch '<url or path>' [--lang he|en] [--speakers] [--fast]`
 - Anything else is pasted text. Pass it on stdin with a quoted heredoc, so the shell interprets none of it:
 
@@ -63,8 +68,8 @@ Read `transcript_path`. If `words` is above about 40,000, read it in sections (R
 ## Step 3. Read the user's current setup
 
 - `~/.claude/CLAUDE.md`, and the project's `CLAUDE.md` or `.claude/CLAUDE.md` if present.
-- The name and description of every user and project skill. Your context already lists them; do not open skill bodies.
-- `lessons_log` from the fetch result, if the file exists: what was proposed before and what the user rejected.
+- The name and description of every skill listed in your context: user, project, plugin and built-in. Do not open skill bodies.
+- `lessons_log` from the fetch result, if the file exists: what was proposed before and what the user rejected (`dry_run` entries were never decided).
 
 ## Step 4. Extract candidates
 
@@ -85,11 +90,15 @@ One card per candidate, numbered:
 
 Leave out the speaker label when the transcript has none. When a candidate contradicts the setup, say so plainly and let the user decide.
 
-If there are zero candidates: say "Nothing here worth adding to your setup", give one sentence on why, log it (step 8 with `"outcome": "nothing_worth_adding"`), and stop.
+After the cards, one line naming what you dropped, each with a few-word reason, for example: `Left out: weekly digest (would fetch on a schedule, note only); verbose logs (already covered by <rule>); "agents are the future" (opinion, no method).` Skip the line when nothing was dropped. It is display only; dropped candidates are not logged.
+
+If there are zero candidates: say "Nothing here worth adding to your setup", give one sentence on why, log it (step 8 with `"outcome": "nothing_worth_adding"`, or `dry_run` in a dry run), and stop.
 
 ## Step 6. Select
 
 Let the user pick any subset, including none. Use the question tool (multi-select) when the count fits its option limit; otherwise ask for numbers in plain text.
+
+Dry run: skip this step. Every candidate goes to step 7.
 
 ## Step 7. Write, one lesson at a time
 
@@ -112,6 +121,8 @@ For each picked lesson, in order:
 4. Show the exact file content, or a diff for an existing file.
 5. Write only after the user says yes for this file. Never overwrite an existing skill: if the slug exists, propose a diff to it or a new name.
 
+Dry run: do 1 to 4 for every candidate without asking anything (state the default destination; for an idea, show the line that would be appended to `notes_file`), and never do 5. Head each one "Would write to <path>". Write nothing, not even when the user asks mid-run: they can run again without `--dry-run`.
+
 ## Step 8. Log
 
 Always log, including when nothing was picked. One `key: value` per line, values on one line; a line with only `---` starts each candidate (leave candidates out when there are none):
@@ -119,7 +130,7 @@ Always log, including when nothing was picked. One `key: value` per line, values
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/cast2skill.py log <<'CAST2SKILL_LOG_<random>'
 library_dir: <library_dir from fetch>
-outcome: written | nothing_picked | nothing_worth_adding
+outcome: written | nothing_picked | nothing_worth_adding | dry_run
 reason: <one sentence when nothing was worth adding>
 ---
 title: <title>
@@ -130,12 +141,14 @@ speaker: SPEAKER_01
 quote: <25 words max>
 versus_setup: new
 confidence: high
-decision: picked | rejected
+decision: picked | rejected | dry_run
 written_to: <path, or none>
 CAST2SKILL_LOG_<random>
 ```
 
-End with a 3-line summary: what was written, where, and what was logged (name only the files in `files_written`).
+Dry run: `outcome: dry_run`, every candidate `decision: dry_run` and `written_to: none`.
+
+End with a 3-line summary: what was written, where, and what was logged (name only the files in `files_written`). After a dry run, say that nothing was written to the setup.
 
 ## Language
 

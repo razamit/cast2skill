@@ -1,6 +1,7 @@
 """Podcasts without network: feed parsing, episode matching, Apple and Spotify
 resolution, and the four podcast routes with downloads and the transcriber faked."""
 
+import json
 import os
 from unittest import mock
 
@@ -156,13 +157,14 @@ class RouteTests(IsolatedHomeTestCase):
                 fetch.fetch(fetch_args("https://podcasts.apple.com/us/podcast/x/id123?i=1"))
         self.assertEqual(caught.exception.code, errors.NO_PUBLIC_FEED)
 
-    def spotify(self, oembed_title, episode_search, show_search=(), show_name=""):
+    def spotify(self, oembed_title, episode_search, show_search=(), show_name="",
+                url="https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk"):
         def itunes(path, **params):
             return list(episode_search) if params.get("entity") == "podcastEpisode" else list(show_search)
         self.start_patch(mock.patch.object(podcast_lookup, "itunes", side_effect=itunes))
         self.start_patch(mock.patch.object(http_client, "get_json", return_value={"title": oembed_title}))
         self.start_patch(mock.patch.object(podcast_lookup, "spotify_show_name", return_value=show_name))
-        return fetch.fetch(fetch_args("https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk"))
+        return fetch.fetch(fetch_args(url))
 
     def test_spotify_resolves_through_the_public_feed_and_never_downloads_from_spotify(self):
         hit = {"trackName": "Ep. 42: Tests first, always?", "feedUrl": FEED_URL}
@@ -170,6 +172,33 @@ class RouteTests(IsolatedHomeTestCase):
         self.assertEqual(result["title"], "Ep. 42: Tests first, always?")
         downloaded = self.downloads.call_args.args[0]
         self.assertNotIn("spotify", downloaded)
+
+    def test_spotify_share_token_is_never_stored_and_reuse_ignores_it(self):
+        hit = {"trackName": "Ep. 42: Tests first, always?", "feedUrl": FEED_URL}
+        clean = "https://open.spotify.com/episode/4rOoJ6Egrf8K2IrywzwOMk"
+        first = self.spotify(hit["trackName"], [hit], url=clean + "?si=05890d41c8764a22")
+        self.assertEqual(first["url"], clean)
+        with open(os.path.join(first["library_dir"], "source.json"), encoding="utf-8") as handle:
+            self.assertNotIn("si=", handle.read())
+        again = fetch.fetch(fetch_args(clean))
+        self.assertEqual((again["reused"], again["library_dir"], again["url"]), (True, first["library_dir"], clean))
+
+    def test_audio_url_with_and_without_tracking_reuses_one_transcript(self):
+        first = fetch.fetch(fetch_args("https://cdn.example.com/a.mp3?utm_source=share", lang="en"))
+        again = fetch.fetch(fetch_args("https://cdn.example.com/a.mp3", lang="en"))
+        self.assertEqual((first["url"], again["reused"]), ("https://cdn.example.com/a.mp3", True))
+        self.assertEqual(again["id"], first["id"])
+
+    def test_entry_saved_before_cleaning_is_reused_with_a_clean_url(self):
+        first = fetch.fetch(fetch_args("https://cdn.example.com/b.mp3", lang="en"))
+        source_path = os.path.join(first["library_dir"], "source.json")
+        with open(source_path, encoding="utf-8") as handle:
+            stored = json.load(handle)
+        stored["url"] = "https://cdn.example.com/b.mp3?si=old"
+        with open(source_path, "w", encoding="utf-8") as handle:
+            json.dump(stored, handle)
+        self.assertEqual(fetch.fetch(fetch_args("https://cdn.example.com/b.mp3?si=new"))["url"],
+                         "https://cdn.example.com/b.mp3")
 
     def test_spotify_skips_a_similar_show_without_the_episode(self):
         self.feeds["https://other.example.com/feed"] = podcast_feeds.Feed(url="x", episodes=[])

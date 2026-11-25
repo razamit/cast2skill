@@ -20,15 +20,27 @@ import re
 import unicodedata
 
 URL = r"\b(?:https?|ftp|file)://\S+|\bwww\.\S+"
+# `make` and `eval` are everyday English ("make sure", "make them pass", "write
+# an eval"), so they are flagged only in a command shape: in inline code, after
+# a `$ ` prompt or `&&`/`||` (not `;`, as in "small; make sure"), with flags or
+# VAR=value, before a target that is never English after "make", or before an
+# English-looking target that ends the clause ("then run make test.").
+# See DECISIONS.md row 32.
+MAKE_TARGETS_ALWAYS = r"install|uninstall|deploy|dist|distclean|lint|bootstrap|publish"
+MAKE_TARGETS_AT_CLAUSE_END = r"all|build|check|clean|dev|docs|format|release|run|setup|test|tests"
+MAKE_COMMAND = (r"`\s*make\b|(?:\$|&&|\|\|)[ \t]*make\b|\bmake\s+--?[a-z]|\bmake\s+[a-z_][a-z0-9_]*="
+                rf"|\bmake\s+(?:{MAKE_TARGETS_ALWAYS})\b"
+                rf"|\bmake(?:\s+(?:{MAKE_TARGETS_AT_CLAUSE_END}))+(?=[ \t]*(?:\n|$|[.;)|&]))")
+EVAL_COMMAND = r"\beval\s+[\"'`$]|\beval\("
 PATTERNS = [
     ("url", URL),
     ("bare_domain", r"\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|dev|ai|sh|co|app|xyz|me|info|biz|ly|gg|tv|fm|site|cloud)\b(?:/\S*)?"),
     ("markdown_link", r"\]\([^)]*\)"),
     ("email_address", r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b"),
     ("code", r"```|`[^`\n]+`"),
-    ("shell_command", r"\b(?:curl|wget|sudo|bash|zsh|eval|exec|chmod|chown|ssh|scp|rsync|nc|osascript|docker|kubectl|make)\b"
+    ("shell_command", r"\b(?:curl|wget|sudo|bash|zsh|exec|chmod|chown|ssh|scp|rsync|nc|osascript|docker|kubectl)\b"
                       r"|\brm\s+-|\|\s*(?:ba|z)?sh\b|\bsh\s+-c\b|\bgit\s+(?:push|reset|clean|checkout\s+--)"
-                      r"|\bpython3?\s+-c\b|\bnode\s+-e\b"),
+                      r"|\bpython3?\s+-c\b|\bnode\s+-e\b|" + MAKE_COMMAND + "|" + EVAL_COMMAND),
     ("run_or_execute", r"\b(?:execute|run (?:this|the following|these|a|the) (?:command|script|snippet)s?|run the setup)\b"),
     ("fetch_or_visit", r"\b(?:fetch|visit|go to|navigate to|browse to|retrieve|look up online|check online)\b"),
     ("install", r"\b(?:install|download|pip3?|npm|npx|brew|apt(?:-get)?|gem|cargo add|uvx?)\b"),
