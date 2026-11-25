@@ -6,7 +6,10 @@ of the progress entry that holds the proof, so `grep '\[X.Y.Z\]'` across
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-25
+
 ### Added
+- Install from GitHub as a Claude Code plugin marketplace: `claude plugin marketplace add razamit/cast2skill`, then `claude plugin install cast2skill@cast2skill` (2026-11-11)
 - `/cast2skill:doctor`: reports what works on this machine (yt-dlp, ffmpeg, Apple Silicon, audio_transcriber, speaker labels) with one fix per failed check (2026-11-11)
 - `fetch` for pasted text, text and subtitle files, local audio, and YouTube (human captions first, then local transcription, then auto captions; `--fast` for captions only) (2026-11-11)
 - `fetch` for podcasts: Apple Podcasts and Spotify episode links resolved to the show's public RSS feed, RSS feed URLs with episode matching, and direct audio URLs (2026-11-11)

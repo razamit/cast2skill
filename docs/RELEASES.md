@@ -7,11 +7,11 @@ changelog section for each release is written from the progress entries
 stamped with that version.
 
 ## Carriers
-- Canonical: `.claude-plugin/plugin.json` `version` (planned in `SPEC.md` §5, file not created yet; created at M2)
+- Canonical: `.claude-plugin/plugin.json` `version`
 - Mirrors: none. `.claude-plugin/marketplace.json` carries no version unless a decision row adds one.
 - Derived, do not edit: none
 - Build number: none
-- Tag: `vX.Y.Z`, annotated, latest none (not a git repository yet)
+- Tag: `vX.Y.Z`, annotated, latest none (v0.1.0 pending)
 - Changelog style: `## [X.Y.Z] - YYYY-MM-DD`
 - Bump policy: decision row 5
 
@@ -19,3 +19,4 @@ stamped with that version.
 
 | Version | Date | Build | Tag → commit | Shipped | Post |
 |---|---|---|---|---|---|
+| 0.1.0 | 2026-11-25 | none | v0.1.0 → pending | 2026-11-25, 2026-11-11 | none |

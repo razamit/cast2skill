@@ -6,8 +6,21 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-25: Release 0.1.0: first release; fetch for text, YouTube and podcasts, the learn and doctor skills, `--dry-run` (release, changelog + registry). ✅ DONE**
+Carriers before/after: `.claude-plugin/plugin.json` 0.1.0 → 0.1.0 (set at M2,
+never released before; decision row 5). `marketplace.json` carries no version.
+`grep -n '"version"' .claude-plugin/*.json` shows 0.1.0 in plugin.json only.
+Section `## [0.1.0] - 2026-11-25`: bullets from 10 stamped entries (2026-11-25
+x5, 2026-11-11 M2 to M6); one bullet added for M6 (install from the
+marketplace), which had none. Backfilled stamps: 0.
+Tests: 131 OK; `claude plugin validate --strict .` passes (ICON_MISSING warning).
+Not yet published: no git remote, so the README install command does not work
+until the repo is pushed; audio needs audio_transcriber's `cli-flags` branch
+on its public `main`. Tag: pending.
+Files: CHANGELOG.md, docs/PROGRESS.md, docs/RELEASES.md.
 
-**2026-11-25: learn skill reads the setup with Read; a flagged draft changes meaning or becomes a note (skill text, `check` verdict string, one contract test; two headless Haiku runs, about $0.04). ✅ DONE [unreleased]**
+
+**2026-11-25: learn skill reads the setup with Read; a flagged draft changes meaning or becomes a note (skill text, `check` verdict string, one contract test; two headless Haiku runs, about $0.04). ✅ DONE [0.1.0]**
 Scope: ticket `2026-11-25-learn-setup-reads-and-check-rewording.md`.
 1. Step 3: "Use the Read tool for every file here. Never use Bash (`ls`,
    `cat`, `grep`)"; each CLAUDE.md is read whole, a missing one is fine;
@@ -51,7 +64,7 @@ Files: `skills/learn/SKILL.md` (164 lines, was 158),
 `tests/test_learn_safety_and_log.py`, `docs/DECISIONS.md` (rows 39, 40),
 `docs/PROGRESS.md`, `CHANGELOG.md`, the closed ticket and the new one.
 
-**2026-11-25: README says lesson quality depends on the session model; case 2 (captionless Hebrew YouTube) passes. ✅ DONE [unreleased]**
+**2026-11-25: README says lesson quality depends on the session model; case 2 (captionless Hebrew YouTube) passes. ✅ DONE [0.1.0]**
 Scope: owner chose option B (decision 38): the skill does not set a model;
 README "How lessons are chosen" says a stronger model gives better candidates
 and suggests `/model`. Its "Specific" example now matches the rubric (no
@@ -71,7 +84,7 @@ tried Bash reads of ~/.claude and was denied; a flagged draft passed `check`
 after a one-word synonym swap).
 Files: README.md, docs/DECISIONS.md, docs/PROGRESS.md, CHANGELOG.md, one ticket.
 
-**2026-11-25: learn skill wording: log in the same turn, summary names written files, slug check via Read. ✅ DONE: skill text only, no model run redone for this wording. [unreleased]**
+**2026-11-25: learn skill wording: log in the same turn, summary names written files, slug check via Read. ✅ DONE: skill text only, no model run redone for this wording. [0.1.0]**
 Scope: three wording fixes from the independent end-to-end run at 77e5514
 (runs tB1 to tB4 in the session scratchpad, `e2e2/runs`).
 1. After the last write attempt (written, declined or failed), go to step 8 in
@@ -93,7 +106,7 @@ Tickets: filed `2026-11-25-heredoc-delimiter-suffixes-look-alike.md` and
 evidence (rule verified for the checkout path, not the installed-cache path).
 Files: skills/learn/SKILL.md, docs/PROGRESS.md, CHANGELOG.md, three tickets.
 
-**2026-11-25: fixes from the independent end-to-end run: `log` checks `written_to`, every run leaves a jsonl row, skill text fixes, permission rule in doctor. ✅ DONE: all nine items built and tested at script level; the new skill wording and the permission rule have not been run in a live session. [unreleased]**
+**2026-11-25: fixes from the independent end-to-end run: `log` checks `written_to`, every run leaves a jsonl row, skill text fixes, permission rule in doctor. ✅ DONE: all nine items built and tested at script level; the new skill wording and the permission rule have not been run in a live session. [0.1.0]**
 Scope: fixes from an independent end-to-end run through the real skill
 (evidence in the session scratchpad, `e2e/runs/` and `e2e/home/lessons.jsonl`).
 Key failure: a skill write was blocked by Claude Code's `.claude/`
@@ -163,7 +176,7 @@ build remain unreleased.
 
 ---
 
-**2026-11-25: dry-run follow-ups: `--dry-run`, tracking parameters stripped, `check` and `make`, skill comparison, "Left out" line, rubric example. ✅ DONE: all six items built and tested; the new skill wording has not been run end to end by a model yet. [unreleased]**
+**2026-11-25: dry-run follow-ups: `--dry-run`, tracking parameters stripped, `check` and `make`, skill comparison, "Left out" line, rubric example. ✅ DONE: all six items built and tested; the new skill wording has not been run end to end by a model yet. [0.1.0]**
 Scope: six fixes from the owner's dry run of `/cast2skill:learn` on a Spotify
 episode ("73 - Harness Engineering").
 1. Share-tracking parameters (`si`, `feature`, `utm_*`, `fbclid`, `gclid`,
@@ -216,7 +229,7 @@ Refs: decisions 30 to 33.
 
 ---
 
-**2026-11-11: M6, README, LICENSE, marketplace file, local install test, independent review and fixes. 🟡 PARTIAL: everything built and committed; waiting at GATE B for the owner's manual table. [unreleased]**
+**2026-11-11: M6, README, LICENSE, marketplace file, local install test, independent review and fixes. 🟡 PARTIAL: everything built and committed; waiting at GATE B for the owner's manual table. [0.1.0]**
 Scope: `README.md` (SPEC.md §14 order, injection fixture's expected behavior),
 `LICENSE` (MIT, was missing from M2), `.claude-plugin/marketplace.json`
 (name `cast2skill`, source `./`), doctor can save `transcriber_dir` after a yes.
@@ -250,7 +263,7 @@ Refs: decisions 26 to 29.
 
 ---
 
-**2026-11-11: M5, `learn` skill, rubric, writing rules, `log` and `check`. 🟡 PARTIAL: manual cases 8 and 9 pass headless; 10 not run. [unreleased]**
+**2026-11-11: M5, `learn` skill, rubric, writing rules, `log` and `check`. 🟡 PARTIAL: manual cases 8 and 9 pass headless; 10 not run. [0.1.0]**
 New: `skills/learn/SKILL.md` (flow from SPEC.md §7, safety rules first,
 pasted text via heredoc, `check` before any skill or rule), `reference/rubric.md`,
 `reference/writing.md`, `lessons_log` (`log`: lessons.md + lessons.jsonl,
@@ -278,7 +291,7 @@ Refs: decisions 10, 24, 25.
 
 ---
 
-**2026-11-11: M4, `fetch` for podcasts (Apple, Spotify to RSS, RSS, direct audio). ✅ DONE. [unreleased]**
+**2026-11-11: M4, `fetch` for podcasts (Apple, Spotify to RSS, RSS, direct audio). ✅ DONE. [0.1.0]**
 New modules: `podcast_feeds` (RSS parsing, entity refusal), `episode_match`
 (normalized exact, difflib >= 0.8, else top 3 as `needs_episode`),
 `podcast_lookup` (iTunes lookup/search, Spotify oEmbed, endpoints verified
@@ -302,7 +315,7 @@ Spotify's service. Files: `skills/learn/scripts/cast2skill_core/{podcast_feeds,e
 
 ---
 
-**2026-11-11: M3, `fetch` for text, local audio and YouTube. ✅ DONE. [unreleased]**
+**2026-11-11: M3, `fetch` for text, local audio and YouTube. ✅ DONE. [0.1.0]**
 New modules: `classify` (all §6.3 rows, incl. M4's), `language`, `subtitles`
 (rolling-caption dedupe, ~30 s paragraphs), `http_client` (CA fallback),
 `youtube` (yt-dlp), `fetch_context` (library folders, reuse, local
@@ -328,7 +341,7 @@ structure), `tests/fixtures/manual_captions.srt`, devlog. Refs: decisions 14, 16
 
 ---
 
-**2026-11-11: M2, plugin scaffold, `plugin.json`, `doctor`, `config`, `transcribe`. ✅ DONE. [unreleased]**
+**2026-11-11: M2, plugin scaffold, `plugin.json`, `doctor`, `config`, `transcribe`. ✅ DONE. [0.1.0]**
 Owner said: continue without stopping at gates, commit along the way, test at
 the end. M1 committed on audio_transcriber `cli-flags` as `43bbd98` (not
 pushed). cast2skill is now a git repo (`git init`, branch `main`, no remote).
