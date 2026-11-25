@@ -11,7 +11,7 @@ stamped with that version.
 - Mirrors: none. `.claude-plugin/marketplace.json` carries no version unless a decision row adds one.
 - Derived, do not edit: none
 - Build number: none
-- Tag: `vX.Y.Z`, annotated, latest none (v0.1.0 pending)
+- Tag: `vX.Y.Z`, annotated, latest `v0.1.0`
 - Changelog style: `## [X.Y.Z] - YYYY-MM-DD`
 - Bump policy: decision row 5
 
@@ -19,4 +19,4 @@ stamped with that version.
 
 | Version | Date | Build | Tag → commit | Shipped | Post |
 |---|---|---|---|---|---|
-| 0.1.0 | 2026-11-25 | none | v0.1.0 → pending | 2026-11-25, 2026-11-11 | none |
+| 0.1.0 | 2026-11-25 | none | v0.1.0 → 337bd80 | 2026-11-25, 2026-11-11 | none |

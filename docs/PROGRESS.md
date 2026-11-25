@@ -16,7 +16,7 @@ marketplace), which had none. Backfilled stamps: 0.
 Tests: 131 OK; `claude plugin validate --strict .` passes (ICON_MISSING warning).
 Not yet published: no git remote, so the README install command does not work
 until the repo is pushed; audio needs audio_transcriber's `cli-flags` branch
-on its public `main`. Tag: pending.
+on its public `main`. Tag: v0.1.0 → 337bd80.
 Files: CHANGELOG.md, docs/PROGRESS.md, docs/RELEASES.md.
 
 
