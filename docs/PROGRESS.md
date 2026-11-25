@@ -6,6 +6,29 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 
 ---
 
+**2026-11-25: Published: cast2skill on GitHub with v0.1.0, audio_transcriber flag mode on its public main. ✅ DONE: pushed and checked; clean install from the marketplace not yet run.**
+Scope: public repo `razamit/cast2skill` created; `main` and `v0.1.0` pushed.
+Before the first push, history from `77e5514` on was rewritten (filter-branch,
+docs/PROGRESS.md only) so a home path never appears; `git log -p main | grep
+-c /Users/` gives 0, and the four docs citing `77e5514` now cite `b93cbb9`.
+audio_transcriber `main` fast-forwarded `818c721..2cee45b` and pushed, so the
+README's "version with command-line flags" is now on its public `main`.
+`2cee45b` (Windows and terminal work) was checked read-only against
+cast2skill's contract first: transcripts byte-identical before and after
+(English with 2 speakers, Hebrew), `--capabilities` adds only `engine` and
+version 1.1.0, exit codes unchanged, mlx-whisper still the engine on Apple
+Silicon; audio_transcriber 169 tests OK, cast2skill 131 tests OK.
+```
+$ git ls-remote origin
+5bb3b7b refs/heads/main
+1ef0c3b refs/tags/v0.1.0  (337bd80^{})
+```
+Tickets filed: `2026-11-25-local-transcription-blocked-off-apple-silicon.md`,
+`2026-11-25-transcriber-env-overrides-reach-cast2skill.md`.
+Next: owner runs the marketplace install in a live session (closes
+`2026-11-25-permission-rule-not-checked-in-a-live-session.md` if it passes).
+Files: docs/PROGRESS.md, two tickets.
+
 **2026-11-25: Release 0.1.0: first release; fetch for text, YouTube and podcasts, the learn and doctor skills, `--dry-run` (release, changelog + registry). ✅ DONE**
 Carriers before/after: `.claude-plugin/plugin.json` 0.1.0 → 0.1.0 (set at M2,
 never released before; decision row 5). `marketplace.json` carries no version.
