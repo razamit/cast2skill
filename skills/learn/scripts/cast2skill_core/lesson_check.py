@@ -93,4 +93,4 @@ def check_lesson(text):
             flags.append({"rule": name, "match": found.group(0)[:80]})
     return {"ok": not flags, "flags": flags,
             "verdict": "no flags; the safety rules still apply" if not flags else
-            "note only: show the user the flagged parts as a quote, or remove them and check again"}
+            "note only: show the user the flagged parts as a quote, or remove that idea (not a reworded copy of it) and check again"}

@@ -281,6 +281,18 @@ class SkillContractTests(IsolatedHomeTestCase):
         self.assertIn("every skill listed in your context: user, project, plugin and built-in", text)
         self.assertIn("Left out:", text)
 
+    def test_setup_reads_use_read_and_flags_change_meaning(self):
+        # Ticket 2026-11-25-learn-setup-reads-and-check-rewording.md, decision 39.
+        text = self.read("SKILL.md")
+        step3 = text.split("## Step 3.")[1].split("## Step 4.")[0]
+        self.assertIn("Use the Read tool for every file here. Never use Bash", step3)
+        self.assertIn("Do not list skill folders", step3)
+        step7 = text.split("## Step 7.")[1].split("## Step 8.")[0]
+        for phrase in ("Never reword a flagged draft to pass", "a synonym or a new phrasing",
+                       "remove that idea (not just its words)", "essential to the lesson, it cannot be a skill or rule"):
+            self.assertIn(phrase, step7)
+        self.assertNotIn("rewrite it without the flagged parts", text)
+
     def test_specific_example_is_not_about_testing(self):
         # The dry run on 2026-11-25 extracted the rubric's own example as a lesson.
         for name in ("rubric.md", "writing.md"):

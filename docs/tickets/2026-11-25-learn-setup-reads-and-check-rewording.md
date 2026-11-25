@@ -1,6 +1,6 @@
 # Learn skill: setup reads via Bash, and a flagged draft reworded with a synonym
 
-Status: open
+Status: CLOSED (2026-11-25), fixed in the progress entry "2026-11-25: learn skill reads the setup with Read; a flagged draft changes meaning or becomes a note" (decision rows 39 and 40)
 Found: 2026-11-25, headless dry run on a captionless Hebrew YouTube video (F0wjoK584JU), Haiku 5.5
 
 ## Symptom
@@ -33,3 +33,16 @@ Scratch run: `scratchpad/yt2/run.json` in session c238761a.
 - Step 7: when `check` flags a draft, remove the flagged idea, not just the
   word; if the idea itself is the lesson, offer it as a note with the quote.
   Decide whether to tell the user what was flagged and how it was changed.
+
+## Resolution (2026-11-25)
+
+- Step 3 now says to use the Read tool for every setup file and never Bash
+  (`ls`, `cat`, `grep`); skill names come from context, so skill folders are
+  not listed. Glob and Grep were not added to `allowed-tools` (row 40).
+- Step 7.3 now says never reword a flagged draft to pass; remove the flagged
+  idea (not just its words) and tell the user what was removed, or, if the
+  flagged part is essential, offer it only as a note with the source quote
+  (row 39).
+- Left open: the `check` script's own verdict text still says "remove them
+  and check again", filed as
+  `2026-11-25-check-verdict-says-remove-the-flagged-parts.md`.

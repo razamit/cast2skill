@@ -7,6 +7,50 @@ files touched, cross-refs to decisions and tickets. Never rewrite old entries.
 ---
 
 
+**2026-11-25: learn skill reads the setup with Read; a flagged draft changes meaning or becomes a note (skill text, `check` verdict string, one contract test; two headless Haiku runs, about $0.04). ✅ DONE [unreleased]**
+Scope: ticket `2026-11-25-learn-setup-reads-and-check-rewording.md`.
+1. Step 3: "Use the Read tool for every file here. Never use Bash (`ls`,
+   `cat`, `grep`)"; each CLAUDE.md is read whole, a missing one is fine;
+   skill folders are not listed (names come from context). `allowed-tools`
+   unchanged, no Glob or Grep (decision 40).
+2. Step 7.3: "Never reword a flagged draft to pass: a synonym or a new
+   phrasing with the same meaning is the same lesson." Not essential: remove
+   that idea (not just its words), tell the user, check again. Essential: note
+   with the source quote only (decision 39, supersedes row 24's "one rewrite"
+   clause). Replaces "rewrite it without the flagged parts".
+Proof:
+```
+$ python3 -m unittest discover -b -s tests -t .
+Ran 131 tests in 0.955s
+OK
+$ claude plugin validate --strict .   (Claude Code 2.1.332)
+✔ Validation passed   (exit 0, known ICON_MISSING directory warning)
+```
+New test `test_setup_reads_use_read_and_flags_change_meaning`. Two headless
+`--dry-run` runs through the real skill (`claude -p --plugin-dir . --model
+haiku --no-session-persistence`, pasted text, scratch `CAST2SKILL_HOME` and
+project in the session scratchpad, writes to `~/.claude` and `~/.cast2skill`
+disallowed; the real `~/.claude/CLAUDE.md` was read, nothing written there):
+- `d1` (69 s, $0.020): setup read with Read only (`~/.claude/CLAUDE.md`,
+  project `CLAUDE.md`, missing `.claude/CLAUDE.md`), `permission_denials: []`.
+  A rule draft was flagged `contact: message`; the model removed the clause
+  "in the message", told the user what it removed, re-checked (ok). No
+  synonym swap. 3 candidates logged `dry_run`.
+- `d2` (56 s, $0.018): a "permissions allow list" lesson went straight to a
+  note quoting the speaker ("Not applied: it changes permissions"); one rule
+  passed `check`. Setup read with Read only, `permission_denials: []`.
+Not observed: a flag on an essential part going through `check` and then
+being turned into a note; in `d2` the model applied safety rule 2 before
+drafting a rule, so that branch of 7.3 ran in neither run.
+Ticket filed and closed in the same unit: `2026-11-25-check-verdict-says-remove-the-flagged-parts.md`.
+`check`'s verdict now says "remove that idea (not a reworded copy of it) and
+check again" instead of "remove them and check again" (`lesson_check.py:96`);
+131 tests OK after the change. No model run was redone for this string.
+Files: `skills/learn/SKILL.md` (164 lines, was 158),
+`skills/learn/scripts/cast2skill_core/lesson_check.py`,
+`tests/test_learn_safety_and_log.py`, `docs/DECISIONS.md` (rows 39, 40),
+`docs/PROGRESS.md`, `CHANGELOG.md`, the closed ticket and the new one.
+
 **2026-11-25: README says lesson quality depends on the session model; case 2 (captionless Hebrew YouTube) passes. ✅ DONE [unreleased]**
 Scope: owner chose option B (decision 38): the skill does not set a model;
 README "How lessons are chosen" says a stronger model gives better candidates

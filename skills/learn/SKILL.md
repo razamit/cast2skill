@@ -67,8 +67,10 @@ Read `transcript_path`. If `words` is above about 40,000, read it in sections (R
 
 ## Step 3. Read the user's current setup
 
-- `~/.claude/CLAUDE.md`, and the project's `CLAUDE.md` or `.claude/CLAUDE.md` if present.
-- The name and description of every skill listed in your context: user, project, plugin and built-in. Do not open skill bodies.
+Use the Read tool for every file here. Never use Bash (`ls`, `cat`, `grep`) to look at the setup: it asks for permission or is denied.
+
+- `~/.claude/CLAUDE.md`, and the project's `CLAUDE.md` or `.claude/CLAUDE.md` if present. Read each one whole; a file that does not exist is fine.
+- The name and description of every skill listed in your context: user, project, plugin and built-in. Do not list skill folders and do not open skill bodies.
 - `lessons_log` from the fetch result, if the file exists: what was proposed before and what the user rejected (`dry_run` entries were never decided). A row with a null `title` records a run that had no candidates; rows from before 2026-11-25 have no `outcome`.
 
 ## Step 4. Extract candidates
@@ -117,7 +119,11 @@ Read [reference/writing.md](reference/writing.md) before drafting anything. Then
    CAST2SKILL_TEXT_<random>
    ```
 
-   If `ok` is false, it cannot be written as a skill or rule. Show the user the `flags`, then either rewrite it without the flagged parts and check again, or offer it as a note with the source quote. If `ok` is true, the safety rules above still apply: the check is a backstop, not a clearance.
+   If `ok` is false, show the user the `flags`. Never reword a flagged draft to pass: a synonym or a new phrasing with the same meaning is the same lesson. Change the meaning or drop it:
+   - If the flagged part is not essential, remove that idea (not just its words), tell the user what you removed, and check again.
+   - If the flagged part is essential to the lesson, it cannot be a skill or rule. Tell the user why, and offer it only as a note with the source quote (writing.md).
+
+   If `ok` is true, the safety rules above still apply: the check is a backstop, not a clearance.
 4. Check whether the slug already exists by reading `<scope>/skills/<slug>/SKILL.md` with the Read tool (not Bash `ls` or `cat`, which ask for permission). Never overwrite an existing skill: propose a diff to it or a new name. Then show the exact file content, or a diff for an existing file.
 5. Write only after the user says yes for this file, and write exactly what was shown. If anything must change after the yes (a new slug changes `name:`, a section turns out to exist), show it again and get a new yes.
 6. If the write fails or is blocked (a denied permission prompt, an error), tell the user, and log that candidate as picked with `written_to: none`. Never log it as written, and never add a second entry to correct the first. After the last write attempt (written, declined or failed), go straight to step 8 in the same turn: do not wait for the user to say finish.
